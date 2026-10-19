@@ -7,6 +7,10 @@
 <meta name="description" content="Estimación del rendimiento de cebada de 59 parcelas de Hidalgo, Puebla y Tlaxcala. Reto AgroCebada FIRA 2026, equipo Visión Terra Data.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 34'%3E%3Cpath d='M13 33V13' stroke='%232B6629' stroke-width='2.4' stroke-linecap='round'/%3E%3Cg fill='%23D9A32B'%3E%3Cellipse cx='13' cy='5' rx='3.2' ry='5'/%3E%3Cellipse cx='7.5' cy='12' rx='3' ry='5' transform='rotate(-24 7.5 12)'/%3E%3Cellipse cx='18.5' cy='12' rx='3' ry='5' transform='rotate(24 18.5 12)'/%3E%3Cellipse cx='7.5' cy='20' rx='3' ry='5' transform='rotate(-24 7.5 20)'/%3E%3Cellipse cx='18.5' cy='20' rx='3' ry='5' transform='rotate(24 18.5 20)'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <style>
 :root{
   --tierra:#F7F4EA; --raya:#E4E2DA; --linde:#B4AE9A;
@@ -60,7 +64,6 @@ h3{font-size:17px;margin:0 0 6px}
 .portada{background:var(--campo-osc);color:#fff;padding:40px 0 34px}
 .portada h1{color:#fff;font-size:38px;max-width:22ch;margin:6px 0 10px}
 .portada p{font-size:17px;max-width:64ch;opacity:.93;margin:0}
-.antetitulo{font-size:14px!important;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#F3DFA5;opacity:1!important}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:-22px}
 .tile{background:var(--papel);border-radius:16px;padding:16px;box-shadow:var(--sombra)}
 .tile .et{font-size:13.5px;color:var(--tinta-2);font-weight:600}
@@ -247,6 +250,53 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .tip{position:fixed;z-index:50;pointer-events:none;background:#22301F;color:#fff;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;max-width:290px;box-shadow:var(--sombra)}
 .tip b{font-size:15px}
 .tip .s{opacity:.82}
+
+/* ===== Versión 3: presentación ===== */
+:root{--display:"Fraunces",Georgia,"Times New Roman",serif;--trigo:#F3DFA5}
+h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical-sizing:auto}
+.marca small{font-family:var(--display);font-weight:600;font-size:14.5px;letter-spacing:.01em;color:var(--trigo);opacity:1;margin-top:1px}
+.equipo{font-family:var(--display);font-weight:600;letter-spacing:.005em}
+/* portada con la fotografía de cebada */
+.portada{position:relative;isolation:isolate;background:#1d3a1b url("img/portada_cebada.jpg") center 60%/cover no-repeat;padding:58px 0 70px}
+.portada::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(15,33,14,.88) 0%,rgba(15,33,14,.74) 40%,rgba(15,33,14,.30) 70%,rgba(15,33,14,.06) 100%),linear-gradient(0deg,rgba(15,33,14,.55) 0%,rgba(15,33,14,0) 40%)}
+.portada h1{font-size:44px;line-height:1.08;max-width:19ch;text-shadow:0 1px 18px rgba(0,0,0,.25)}
+.portada p{text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.firma{font-family:var(--display);font-weight:600;font-size:27px!important;line-height:1.1;color:var(--trigo);margin:0 0 14px!important;opacity:1!important;letter-spacing:.005em}
+.reto{font-weight:650;color:#fff}
+.portada + .ancho .tiles{position:relative;z-index:1}
+@media(max-width:760px){.portada{background-image:url("img/portada_cebada_movil.jpg");background-position:72% center;padding:36px 0 44px}.portada::before{background:linear-gradient(180deg,rgba(15,33,14,.82),rgba(15,33,14,.72) 55%,rgba(15,33,14,.84))}}
+@media(max-width:560px){.portada h1{font-size:30px}.firma{font-size:22px!important}}
+/* fórmulas */
+.ecuacion{background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);padding:16px 18px 14px;margin:14px 0}
+.ec-titulo{font-weight:700;font-size:15.5px;color:var(--tinta);margin-bottom:6px}
+.ec-formula{font-size:21px;text-align:center;padding:14px 4px 16px;overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--raya)}
+.ec-formula .katex-display{margin:0}
+.ec-formula var{font-style:italic;font-family:Georgia,"Times New Roman",serif}
+.ec-formula sub,.ec-formula sup{font-size:.68em}
+.ec-donde{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0 4px;font-size:14.5px;align-items:baseline}
+.ec-donde dt{font-weight:600;white-space:nowrap;font-family:Georgia,"Times New Roman",serif;font-style:italic}
+.ec-donde dt .katex{font-style:normal}
+.ec-donde dd{margin:0}
+.ec-ref{font-size:13px;color:var(--tinta-2);margin:10px 0 0}
+.pendiente{display:inline-block;font-size:12px;font-weight:700;color:#7A5A0E;background:#FFF4D6;border:1px solid var(--cebada);border-radius:999px;padding:1px 8px;margin-right:4px}
+.ecuaciones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ecuaciones .ecuacion{margin:0}
+.ecuaciones .ec-formula{font-size:17px}
+@media(max-width:900px){.ecuaciones{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){.ec-formula,.ecuaciones .ec-formula{font-size:14.5px}.ecuacion{padding:14px 12px 12px}.ec-donde{gap:6px 10px;font-size:14px}.eje-p .marcas span:nth-child(even){display:none}}
+.nota .katex{font-size:1.05em}
+/* correlación */
+.corr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+.corr-texto p{margin:0 0 10px}
+.corr .ecuacion{margin:0}
+.corr-figura{margin-top:16px}
+.corr-figura img{max-width:1000px;margin:0 auto}
+@media(max-width:900px){.corr{grid-template-columns:minmax(0,1fr)}}
+.figura.ancha{grid-column:1/-1}
+.figura.ancha img{max-width:820px;margin:0 auto}
+/* descargas en espera y aviso */
+.toast{position:fixed;z-index:60;left:50%;bottom:24px;transform:translateX(-50%);background:#22301F;color:#fff;border-radius:12px;padding:12px 16px;font-size:14.5px;box-shadow:var(--sombra);max-width:calc(100vw - 32px);text-align:center}
+.docs .caja h3{margin-top:2px}
 </style>
 </head>
 <body>
@@ -264,9 +314,9 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 <!-- ================= INICIO ================= -->
 <section class="vista" id="v-inicio">
   <div class="portada"><div class="ancho">
-    <p class="antetitulo">Reto AgroCebada FIRA 2026</p>
+    <p class="firma">Visión Terra Data</p>
     <h1>Rendimiento de cebada en 197 parcelas de Hidalgo, Puebla y Tlaxcala</h1>
-    <p>Estimamos en toneladas por hectárea (t/ha) el rendimiento de grano de 59 parcelas en el ciclo de abril a octubre de 2025, con un modelo validado en las 138 parcelas cuyo rendimiento proporcionó FIRA (Fideicomisos Instituidos en Relación con la Agricultura).</p>
+    <p><span class="reto">Reto AgroCebada FIRA 2026.</span> Estimamos en toneladas por hectárea (t/ha) el rendimiento de grano de 59 parcelas en el ciclo de abril a octubre de 2025, con un modelo validado en las 138 parcelas cuyo rendimiento proporcionó FIRA (Fideicomisos Instituidos en Relación con la Agricultura).</p>
     <div class="botones"><a class="boton claro" href="#mapa">Ver el mapa</a><a class="boton blanco-borde" href="#modelo">Cómo funciona el modelo</a></div>
   </div></div>
   <div class="ancho">
@@ -286,10 +336,10 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
       <a class="puerta" href="#predicciones"><b>Las 59 predicciones</b><span>Tabla con el rendimiento estimado de cada parcela, promedios por municipio y descargas.</span></a>
       <a class="puerta" href="#modelo"><b>El modelo, paso a paso</b><span>Cómo funciona, sus fórmulas y un botón para ejecutarlo aquí mismo.</span></a>
       <a class="puerta" href="#resultados"><b>Resultados de la validación</b><span>Cuánto se equivoca y cómo se comparó contra otros 42 modelos.</span></a>
-      <a class="puerta" href="#codigo"><b>Código</b><span>El cuaderno completo: verlo, descargarlo o abrirlo en Google Colab.</span></a>
+      <a class="puerta" href="#codigo"><b>Código</b><span>El cuaderno completo: verlo o abrirlo en Google Colab.</span></a>
       <a class="puerta" href="#datos"><b>Datos para ejecutar el código</b><span>Los archivos que usa el modelo, qué contiene cada uno y cómo se obtuvo.</span></a>
     </div>
-    <p class="pie">AgroCebada 2026 · Equipo Visión Terra Data · Datos de las parcelas, rendimientos, clima, relieve e índices satelitales: FIRA (Fideicomisos Instituidos en Relación con la Agricultura). <a href="#documentos">Documentos de la propuesta</a>.</p>
+    <p class="pie">AgroCebada 2026 · Equipo <span class="equipo">Visión Terra Data</span> · Datos de las parcelas, rendimientos, clima, relieve e índices satelitales: FIRA (Fideicomisos Instituidos en Relación con la Agricultura). <a href="#documentos">Documentos de la propuesta</a>.</p>
   </div>
 </section>
 
@@ -316,10 +366,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     <h1>Las 59 predicciones</h1>
     <p class="lead">Rendimiento estimado de las 59 parcelas del conjunto de predicción, en toneladas por hectárea (t/ha), con cuatro decimales. Elige una parcela para ver cómo se forma su estimación.</p>
     <div class="botones">
-      <a class="boton" href="descargas/visionterradata_prediccion.csv" download>Descargar el archivo de entrega</a>
-      <a class="boton borde" href="descargas/tabla_anexos_predicciones.csv" download>Tabla para anexos</a>
+      <a class="boton" href="descargas/visionterradata_prediccion.csv" download>Descargar predicciones</a>
     </div>
-    <p class="nota">Los dos archivos son CSV (valores separados por comas) y se abren con cualquier hoja de cálculo. El archivo de entrega tiene las columnas del archivo de FIRA: ID_POLIGONO, AREA_HA, RENDIMIENTO_T_HA y CONJUNTO.</p>
     <div class="filtros-linea">
       <label>Buscar parcela<input id="p-buscar" type="search" placeholder="AGC_003" autocomplete="off"></label>
       <label>Municipio<select id="p-mun"><option value="">Todos</option></select></label>
@@ -352,24 +400,29 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
       <li><b>Se aplica la mitad de esa corrección.</b> La estimación final es el promedio de dos modelos: el promedio municipal solo y el promedio municipal con la corrección completa. Eso equivale a sumar la mitad (½) de la corrección.</li>
     </ol>
     <h2>La fórmula</h2>
-    <div class="formula"><var>ŷ</var><sub><var>i</var></sub> = <var>ȳ</var><sub><var>m</var></sub> + ½ · Σ<sub><var>k</var></sub> <var>β</var><sub><var>k</var></sub> · ( <var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub> )</div>
-    <dl class="clave">
-      <dt>ŷᵢ</dt><dd>Rendimiento estimado de la parcela <i>i</i>, en t/ha (toneladas por hectárea).</dd>
-      <dt>ȳₘ</dt><dd>Rendimiento promedio de las parcelas de entrenamiento de su municipio <i>m</i>.</dd>
-      <dt>xᵢ,ₖ</dt><dd>Temperatura máxima promedio del mes <i>k</i> (abril a octubre de 2025) en la parcela, en °C (grados Celsius).</dd>
-      <dt>x̄ₘ,ₖ</dt><dd>Promedio de esa temperatura en las parcelas de entrenamiento del municipio.</dd>
-      <dt>βₖ</dt><dd>Coeficiente del mes <i>k</i>, en t/ha por °C (tabla de abajo).</dd>
-    </dl>
+    <figure class="ecuacion" id="ec-estimacion">
+      <figcaption class="ec-titulo">Estimación del rendimiento de cada parcela</figcaption>
+      <div class="ec-formula" data-tex="\hat{y}_i \;=\; \bar{y}_m \;+\; \tfrac{1}{2}\sum_{k=\text{abr}}^{\text{oct}} \beta_k\,\bigl(x_{i,k}-\bar{x}_{m,k}\bigr)"><var>ŷ</var><sub><var>i</var></sub> = <var>ȳ</var><sub><var>m</var></sub> + ½ · Σ<sub><var>k</var></sub> <var>β</var><sub><var>k</var></sub> · ( <var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub> )</div>
+      <dl class="ec-donde">
+        <dt data-tex="\hat{y}_i">ŷᵢ</dt><dd>Rendimiento estimado de la parcela <i>i</i>, en t/ha (toneladas por hectárea).</dd>
+        <dt data-tex="\bar{y}_m">ȳₘ</dt><dd>Rendimiento promedio de las parcelas de entrenamiento de su municipio <i>m</i>.</dd>
+        <dt data-tex="x_{i,k}">xᵢ,ₖ</dt><dd>Temperatura máxima promedio del mes <i>k</i>, de abril a octubre de 2025, en la parcela, en °C (grados Celsius).</dd>
+        <dt data-tex="\bar{x}_{m,k}">x̄ₘ,ₖ</dt><dd>Promedio de esa temperatura en las parcelas de entrenamiento del municipio.</dd>
+        <dt data-tex="\beta_k">βₖ</dt><dd>Coeficiente del mes <i>k</i>, en t/ha por °C (tabla de abajo).</dd>
+        <dt data-tex="\tfrac{1}{2}">½</dt><dd>Se suma la mitad de la corrección.</dd>
+      </dl>
+      <p class="ec-ref"><b>Referencia:</b> elaboración propia del equipo (cuaderno, sección 12; informe, Metodología).</p>
+    </figure>
 
     <h2>El peso de cada mes</h2>
     <p>Dentro de un mismo municipio la temperatura máxima cambia muy poco de una parcela a otra: su variación típica va <span id="m-desv">…</span>. Por eso el efecto real de cada mes es pequeño, aunque el coeficiente por grado se vea grande.</p>
     <div class="tabla-wrap"><table class="tabla" id="t-coef"><thead><tr><th>Mes</th><th class="num">Coeficiente β (t/ha por °C)</th><th class="num">Variación típica dentro del municipio (°C)</th><th class="num">Efecto de esa variación en la estimación (t/ha)</th></tr></thead><tbody></tbody></table></div>
-    <p class="nota">Efecto = ½ × coeficiente × variación típica (desviación estándar de las diferencias contra el promedio municipal, en las 138 parcelas de entrenamiento). Un coeficiente de 0 significa que ese mes no entra al modelo.</p>
-    <p class="alerta">Las temperaturas de los siete meses suben y bajan casi juntas, así que el signo de un mes aislado (como el positivo de mayo) no se lee solo: los meses se compensan entre sí y lo que cuenta es la suma. <span id="m-conjunto"></span></p>
+    <p class="nota">Efecto: <span data-tex="\text{efecto}_k = \tfrac{1}{2}\,\beta_k\,s_k">½ × βₖ × sₖ</span>, donde <span data-tex="s_k">sₖ</span> es la variación típica: la desviación estándar de las diferencias contra el promedio municipal, en las 138 parcelas de entrenamiento. Un coeficiente de 0 significa que ese mes no entra al modelo.</p>
+    <p class="alerta">Las temperaturas de los siete meses suben y bajan casi juntas: dentro de cada municipio, su correlación entre meses va de 0.78 a 1.00. Por eso el signo de un mes aislado (como el positivo de mayo) no se lee solo: los meses se compensan entre sí y lo que cuenta es la suma. <span id="m-conjunto"></span></p>
 
     <div class="caja ejecuta" id="ejecuta">
       <h2 style="margin-top:4px">Ejecuta el modelo</h2>
-      <p>La página calcula aquí mismo, con la fórmula y los parámetros del modelo ya entrenado, el rendimiento de las 59 parcelas, y lo compara con el archivo de entrega (visionterradata_prediccion.csv). El entrenamiento completo se hace con el cuaderno en Google Colab (ver <a href="#codigo">Código</a>).</p>
+      <p>La página calcula aquí mismo el rendimiento de las 59 parcelas, con la fórmula y los parámetros del modelo ya entrenado. El entrenamiento completo se hace con el cuaderno en Google Colab (ver <a href="#codigo">Código</a>).</p>
       <div class="botones"><button class="boton" id="b-ejecutar" type="button">Calcular las 59 estimaciones</button></div>
       <div id="r-ejecutar" aria-live="polite"></div>
       <h3 style="margin-top:18px">Paso a paso para una parcela</h3>
@@ -379,13 +432,30 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     </div>
 
     <h2>Cómo se entrenó</h2>
-    <p>El coeficiente de cada mes se aprendió con <b>ElasticNet</b>, una regresión lineal con penalización que deja en cero los meses que no aportan y reduce los demás. Antes de ajustar, a cada parcela se le resta el promedio de su municipio, tanto al rendimiento como a la temperatura, y las diferencias de temperatura se estandarizan. ElasticNet busca los coeficientes que minimizan:</p>
-    <div class="formula chica">(1 / 2<var>n</var>) · Σ<sub><var>i</var></sub> ( <var>r</var><sub><var>i</var></sub> − Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub> <var>z</var><sub><var>i,k</var></sub> )² + <var>α</var> · <var>ρ</var> · Σ<sub><var>k</var></sub> |<var>b</var><sub><var>k</var></sub>| + (<var>α</var> (1 − <var>ρ</var>) / 2) · Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub>²</div>
-    <dl class="clave">
-      <dt>rᵢ</dt><dd>Rendimiento de la parcela menos el promedio de su municipio.</dd>
-      <dt>zᵢ,ₖ</dt><dd>Diferencia de temperatura del mes <i>k</i> contra su municipio, dividida entre su desviación estándar. El coeficiente por grado es βₖ = bₖ ÷ desviación estándar.</dd>
-      <dt>α, ρ</dt><dd>Fuerza de la penalización y mezcla entre sus dos partes. Se eligieron con validación interna en 5 partes, solo con las 138 parcelas, entre 3 mezclas (0.1, 0.5 y 0.9) y 40 valores de α: <span id="m-params">…</span>.</dd>
-    </dl>
+    <p>El coeficiente de cada mes se aprendió con <b>ElasticNet</b>, una regresión lineal con penalización que deja en cero los meses que no aportan y reduce los demás. Primero, a cada parcela se le resta el promedio de su municipio, tanto al rendimiento como a la temperatura, y las diferencias de temperatura se estandarizan:</p>
+    <figure class="ecuacion" id="ec-diferencias">
+      <figcaption class="ec-titulo">Diferencias contra el municipio y coeficiente por grado</figcaption>
+      <div class="ec-formula" data-tex="r_i = y_i-\bar{y}_m \qquad z_{i,k}=\frac{x_{i,k}-\bar{x}_{m,k}}{s_k} \qquad \beta_k=\frac{b_k}{s_k}"><var>r</var><sub><var>i</var></sub> = <var>y</var><sub><var>i</var></sub> − <var>ȳ</var><sub><var>m</var></sub> &nbsp;·&nbsp; <var>z</var><sub><var>i,k</var></sub> = (<var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub>) ⁄ <var>s</var><sub><var>k</var></sub> &nbsp;·&nbsp; <var>β</var><sub><var>k</var></sub> = <var>b</var><sub><var>k</var></sub> ⁄ <var>s</var><sub><var>k</var></sub></div>
+      <dl class="ec-donde">
+        <dt data-tex="r_i">rᵢ</dt><dd>Rendimiento de la parcela menos el promedio de su municipio.</dd>
+        <dt data-tex="z_{i,k}">zᵢ,ₖ</dt><dd>Diferencia de temperatura del mes <i>k</i> contra su municipio, en desviaciones estándar.</dd>
+        <dt data-tex="s_k">sₖ</dt><dd>Desviación estándar de esas diferencias en las parcelas de entrenamiento.</dd>
+        <dt data-tex="b_k,\ \beta_k">bₖ, βₖ</dt><dd>Coeficiente del mes en la escala estandarizada y en t/ha por °C.</dd>
+      </dl>
+      <p class="ec-ref"><b>Referencia:</b> elaboración propia del equipo (cuaderno, sección 6: funciones que centran por municipio y estandarizan).</p>
+    </figure>
+    <p>ElasticNet busca los coeficientes que hacen más pequeño este total:</p>
+    <figure class="ecuacion" id="ec-elasticnet">
+      <figcaption class="ec-titulo">Ajuste con ElasticNet</figcaption>
+      <div class="ec-formula" data-tex="\begin{aligned}\min_{b}\;\; &\frac{1}{2n}\sum_{i=1}^{n}\Bigl(r_i-\sum_{k} b_k\,z_{i,k}\Bigr)^{2}\\ &+\;\alpha\,\rho\sum_{k}\lvert b_k\rvert \;+\; \frac{\alpha\,(1-\rho)}{2}\sum_{k} b_k^{2}\end{aligned}">(1 / 2<var>n</var>) · Σ<sub><var>i</var></sub> ( <var>r</var><sub><var>i</var></sub> − Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub> <var>z</var><sub><var>i,k</var></sub> )² + <var>α</var> · <var>ρ</var> · Σ<sub><var>k</var></sub> |<var>b</var><sub><var>k</var></sub>| + (<var>α</var> (1 − <var>ρ</var>) / 2) · Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub>²</div>
+      <dl class="ec-donde">
+        <dt data-tex="n">n</dt><dd>Número de parcelas de entrenamiento (138 en el ajuste final).</dd>
+        <dt data-tex="\alpha">α</dt><dd>Fuerza de la penalización: mientras más grande, más pequeños quedan los coeficientes.</dd>
+        <dt data-tex="\rho">ρ</dt><dd>Mezcla entre las dos penalizaciones: valor absoluto (puede dejar meses en cero) y cuadrado (reparte el peso entre meses parecidos).</dd>
+      </dl>
+      <p class="nota" style="margin:8px 0 0">Se eligieron con validación interna en 5 partes, solo con las 138 parcelas, entre 3 mezclas (0.1, 0.5 y 0.9) y 40 valores de α: <span id="m-params">…</span>.</p>
+      <p class="ec-ref"><b>Referencia:</b> Zou y Hastie (2005), método ElasticNet. <span class="pendiente">Referencia pendiente</span> de la biblioteca scikit-learn, que usa esta forma con α y ρ.</p>
+    </figure>
 
     <h2>Cómo se validó y se eligió</h2>
     <ul class="limpia">
@@ -394,8 +464,28 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
       <li><b>Regla fijada antes de correr.</b> Gana el de menor RMSE (raíz del error cuadrático medio). Si varios empatan (la diferencia con el mejor es menor que lo que esa diferencia varía de un reparto a otro), gana el de menor MAE (error absoluto medio). Si en MAE también empatan, gana el de menor variación del RMSE entre repartos.</li>
       <li><b>Entrenamiento final.</b> El modelo ganador se entrenó una última vez con las 138 parcelas y estimó las 59.</li>
     </ul>
-    <div class="formula chica">RMSE = √( (1/<var>n</var>) Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ) &nbsp;·&nbsp; MAE = (1/<var>n</var>) Σ |<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>| &nbsp;·&nbsp; R² = 1 − Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ⁄ Σ (<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>)²</div>
-    <p class="nota">R² es el coeficiente de determinación: la parte de la variación del rendimiento que explica el modelo.</p>
+    <h3 style="margin-top:20px">Cómo se mide el error</h3>
+    <p class="nota" style="margin-top:0">Se calculan en cada reparto con las 138 parcelas, cada una estimada sin haberse usado para entrenar, y se promedian los 10 repartos. <span data-tex="y_i">yᵢ</span>: rendimiento real; <span data-tex="\hat{y}_i">ŷᵢ</span>: rendimiento estimado; <span data-tex="\bar{y}">ȳ</span>: promedio del rendimiento real; <span data-tex="n">n</span> = 138.</p>
+    <div class="ecuaciones">
+      <figure class="ecuacion" id="ec-rmse">
+        <figcaption class="ec-titulo">RMSE (raíz del error cuadrático medio)</figcaption>
+        <div class="ec-formula" data-tex="\mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(y_i-\hat{y}_i\bigr)^{2}}">RMSE = √( (1/<var>n</var>) Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² )</div>
+        <p class="ec-ref">Castiga más los errores grandes. Es el criterio principal para elegir el modelo.</p>
+        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
+      </figure>
+      <figure class="ecuacion" id="ec-mae">
+        <figcaption class="ec-titulo">MAE (error absoluto medio)</figcaption>
+        <div class="ec-formula" data-tex="\mathrm{MAE}=\frac{1}{n}\sum_{i=1}^{n}\bigl\lvert y_i-\hat{y}_i\bigr\rvert">MAE = (1/<var>n</var>) Σ |<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>|</div>
+        <p class="ec-ref">El error promedio en t/ha, sin dar más peso a los errores grandes.</p>
+        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
+      </figure>
+      <figure class="ecuacion" id="ec-r2">
+        <figcaption class="ec-titulo">R² (coeficiente de determinación)</figcaption>
+        <div class="ec-formula" data-tex="R^{2}=1-\frac{\sum_{i}\bigl(y_i-\hat{y}_i\bigr)^{2}}{\sum_{i}\bigl(y_i-\bar{y}\bigr)^{2}}">R² = 1 − Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ⁄ Σ (<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>)²</div>
+        <p class="ec-ref">La parte de la variación del rendimiento que explica el modelo.</p>
+        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
+      </figure>
+    </div>
 
     <h2>Preguntas guía del reto</h2>
     <div class="pregunta"><h3>1. ¿Qué índice es más importante en la predicción?</h3><p>Con nuestros datos, <b>ningún índice de satélite mejoró la predicción por encima del promedio municipal</b>. Por ejemplo, al corregir el promedio municipal con ElasticNet y las 22 variables candidatas, que incluyen derivadas del NDVI (índice de vegetación de diferencia normalizada) y del EVI (índice de vegetación mejorado) de Planet y de Sentinel-2, el RMSE fue de 0.51341 t/ha, contra 0.51260 del promedio municipal solo.</p></div>
@@ -424,7 +514,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
       <div class="tile"><div class="et">MAE</div><div class="va">0.3319</div><div class="su">error absoluto medio · promedio municipal: 0.3375</div></div>
       <div class="tile"><div class="et">R²</div><div class="va">0.6596</div><div class="su">coeficiente de determinación · promedio municipal: 0.6346</div></div>
       <div class="tile"><div class="et">Confirmación</div><div class="va">0.4933</div><div class="su">RMSE en los repartos 52 a 61 · promedio municipal: 0.5128</div></div>
-      <div class="tile"><div class="et">Remuestreo</div><div class="va">99.1 %</div><div class="su">de 2,000 grupos de parcelas al azar con menos error que el promedio municipal; mejora del RMSE de 0.0023 a 0.0387 (intervalo de 95 %)</div></div>
+      <div class="tile"><div class="et">Remuestreo</div><div class="va">99.05 %</div><div class="su">1,981 de 2,000 grupos de parcelas sacados al azar tienen menos error que con el promedio municipal; mejora del RMSE de 0.0023 a 0.0387 t/ha (intervalo de 95 %)</div></div>
+    </div>
+    <div class="caja" id="ventaja">
+      <h2 style="margin-top:4px">De dónde viene la ventaja</h2>
+      <p><b>El 70.41 % de la ventaja está en 3 parcelas.</b> Medida como la baja en la suma de los errores al cuadrado (repartos 42 a 51), esa parte de la ventaja sobre el promedio municipal viene de las parcelas de Apan, Nanacamilpa de Mariano Arista y Tepeapulco, los municipios con una sola parcela de entrenamiento. Cuando esa parcela queda en la parte de prueba, su municipio se queda sin datos: la referencia usa el promedio general (alrededor de 3.95 t/ha) y el modelo corrige parte de ese error con la temperatura.</p>
+      <p><b>En el escenario ponderado como las 59, la mejora es de 0.99 %.</b> Se mide el error solo en los municipios con 2 o más parcelas de entrenamiento, con el peso que cada uno tiene entre las 59; cubren 58 de las 59 (queda fuera Nanacamilpa). El RMSE baja de 0.4891 a 0.4842 t/ha, pero el MAE no mejora: pasa de 0.3239 a 0.3257.</p>
     </div>
     <h2>Comparación de los modelos</h2>
     <p>RMSE de los modelos con menor error, hasta llegar al promedio municipal, que es la referencia. Pasa el cursor o el foco sobre una fila para ver sus cifras; la tabla completa de los 43 está abajo.</p>
@@ -435,9 +530,30 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     <div class="figuras">
       <figure class="figura"><img src="img/g2_reales_vs_predichos.png" alt="Gráfica de dispersión del rendimiento real contra el predicho en parcelas no vistas, reparto 42, por municipio" loading="lazy"><figcaption>Reales contra predichos en parcelas no vistas (reparto 42). La franja gris marca ± 0.5 t/ha.</figcaption></figure>
       <figure class="figura"><img src="img/g3_errores.png" alt="Diagramas de caja del error por municipio e histograma del error absoluto, reparto 42" loading="lazy"><figcaption>Dónde y cuánto se equivoca: error por municipio y distribución del error absoluto (reparto 42).</figcaption></figure>
-      <figure class="figura"><img src="img/g4_predicciones_59.png" alt="Diagramas de caja del rendimiento de entrenamiento por municipio con las 59 predicciones como puntos rojos" loading="lazy"><figcaption>Las 59 predicciones (puntos rojos) frente al rendimiento observado de su municipio (cajas).</figcaption></figure>
-      <figure class="figura"><img src="img/g1_mapa_calor.png" alt="Mapas de calor de la correlación entre el rendimiento y la temperatura máxima de cada mes, con todas las parcelas y dentro de cada municipio" loading="lazy"><figcaption>Correlaciones entre el rendimiento y la temperatura máxima de cada mes, y de los meses entre sí: con todas las parcelas juntas y dentro de cada municipio (138 parcelas).</figcaption></figure>
+      <figure class="figura ancha"><img src="img/g4_predicciones_59.png" alt="Diagramas de caja del rendimiento de entrenamiento por municipio con las 59 predicciones como puntos rojos" loading="lazy"><figcaption>Las 59 predicciones (puntos rojos) frente al rendimiento observado de su municipio (cajas).</figcaption></figure>
     </div>
+
+    <h2 id="correlacion">Correlación: qué es y cómo leerla</h2>
+    <div class="corr">
+      <div class="corr-texto">
+        <p><b>Qué es.</b> La correlación mide si dos cosas suben y bajan juntas, por ejemplo la temperatura de una parcela y su rendimiento. Es un número entre −1 y 1.</p>
+        <p><b>Cómo leerla.</b> Cerca de 1: cuando una sube, la otra también. Cerca de −1: cuando una sube, la otra baja. Cerca de 0: no se mueven juntas en línea recta. En la gráfica, el rojo es una correlación positiva y el azul una negativa; mientras más intenso el color, más fuerte la relación.</p>
+        <p><b>Cómo se calcula.</b> Para cada parcela se mide cuánto se aleja su temperatura del promedio y cuánto se aleja su rendimiento del promedio, y se multiplican esas dos distancias. Se suman los productos de todas las parcelas y el total se divide entre un número que deja el resultado entre −1 y 1.</p>
+        <p><b>Todas juntas o dentro de cada municipio.</b> Con todas las parcelas juntas, la correlación entre la temperatura máxima de abril y el rendimiento es de −0.633. Dentro de cada municipio, es decir, restando antes a cada parcela el promedio de su municipio, baja a −0.215: buena parte de la relación era de ubicación, porque hay municipios más cálidos que rinden menos. Dentro de cada municipio, los siete meses quedan negativos, de −0.124 a −0.215: las parcelas más cálidas que su municipio rindieron un poco menos.</p>
+        <p class="nota">Una correlación no prueba que una cosa cause la otra.</p>
+      </div>
+      <figure class="ecuacion" id="ec-correlacion">
+          <figcaption class="ec-titulo">Correlación de Pearson</figcaption>
+          <div class="ec-formula" data-tex="r=\frac{\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i-\bar{x})^{2}}\;\sqrt{\sum_{i=1}^{n}(y_i-\bar{y})^{2}}}"><var>r</var> = Σ (<var>x</var><sub><var>i</var></sub> − <var>x̄</var>)(<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>) ⁄ √( Σ (<var>x</var><sub><var>i</var></sub> − <var>x̄</var>)² · Σ (<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>)² )</div>
+          <dl class="ec-donde">
+            <dt data-tex="x_i,\ y_i">xᵢ, yᵢ</dt><dd>Temperatura máxima del mes y rendimiento de la parcela <i>i</i>.</dd>
+            <dt data-tex="\bar{x},\ \bar{y}">x̄, ȳ</dt><dd>Sus promedios en las <span data-tex="n = 138">n = 138</span> parcelas de entrenamiento.</dd>
+            <dt>Dentro</dt><dd>Se usa <span data-tex="x_i-\bar{x}_m">xᵢ − x̄ₘ</span> y <span data-tex="y_i-\bar{y}_m">yᵢ − ȳₘ</span>: cada valor menos el promedio de su municipio <i>m</i>.</dd>
+          </dl>
+          <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Cálculo: cuaderno, sección 13 (gráfica de correlaciones).</p>
+      </figure>
+    </div>
+    <figure class="figura corr-figura"><a href="img/g1_mapa_calor.png" target="_blank" rel="noopener"><img src="img/g1_mapa_calor.png" alt="Mapas de calor de la correlación entre el rendimiento y la temperatura máxima de cada mes, con todas las parcelas y dentro de cada municipio" loading="lazy"></a><figcaption>Correlaciones entre el rendimiento y la temperatura máxima de cada mes, y de los meses entre sí: con todas las parcelas juntas (izquierda) y dentro de cada municipio (derecha), 138 parcelas. Toca la imagen para verla en tamaño completo.</figcaption></figure>
   </div>
 </section>
 
@@ -448,8 +564,6 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     <p class="lead">Todo el proceso está en un solo cuaderno de Python: carga y revisión de los datos, variables, comparación de 43 modelos, selección automática del ganador, entrenamiento final y las 59 predicciones. La página no ejecuta el cuaderno: se ejecuta en Google Colab.</p>
     <div class="botones">
       <a class="boton" id="b-colab" href="#" target="_blank" rel="noopener">Abrir en Google Colab</a>
-      <a class="boton borde" href="codigo/AgroCebada_Cuaderno_Final.ipynb" download>Descargar el cuaderno (.ipynb)</a>
-      <a class="boton borde" href="#datos">Archivos de datos</a>
     </div>
     <p class="nota">Huella md5 (algoritmo de resumen de mensajes 5) del cuaderno: <span class="huella" id="c-huella">…</span></p>
     <h2>Guía para ejecutarlo</h2>
@@ -484,9 +598,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     <h1>Documentos de la propuesta</h1>
     <p class="lead">Informe, anexos, bibliografía y video del equipo Visión Terra Data para el Reto AgroCebada FIRA 2026.</p>
     <div class="docs" id="docs-lista"></div>
-    <p class="nota" id="docs-vacio" hidden>Aquí aparecerán el informe, los anexos, la bibliografía y el video de la entrega.</p>
     <h2>Equipo</h2>
-    <p><b>Visión Terra Data</b></p>
+    <p><b class="equipo">Visión Terra Data</b></p>
     <ul class="limpia" id="equipo"></ul>
     <p class="pie">Los datos de las parcelas, los rendimientos, el clima, el relieve y los índices satelitales son de FIRA (Fideicomisos Instituidos en Relación con la Agricultura), Reto AgroCebada 2026. El rendimiento real de las 59 parcelas de predicción lo resguarda FIRA para la evaluación.</p>
   </div>
@@ -494,20 +607,22 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 </main>
 
 <div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" onload="pintarFormulas()"></script>
 <script>
 "use strict";
 /* ===== Configuración que el equipo puede editar ===== */
-const DOCUMENTOS = [                       // cada documento aparece solo si el archivo existe en la carpeta docs/
+const DESCARGAS_ACTIVAS = false;           // false: los botones de descarga avisan "disponible próximamente" · true: descargan normalmente
+const DOCUMENTOS = [                       // tarjetas de la sección Documentos; con DESCARGAS_ACTIVAS en true, cada botón abre su PDF de docs/ (súbelo antes)
   {nombre: "Informe", archivo: "docs/Informe_AgroCebada.pdf", texto: "Reporte técnico de la propuesta."},
   {nombre: "Anexos", archivo: "docs/Anexos_AgroCebada.pdf", texto: "Tablas, figuras, predicciones y aportaciones del equipo."},
   {nombre: "Bibliografía", archivo: "docs/Bibliografia_AgroCebada.pdf", texto: "Fuentes y relación de prompts de inteligencia artificial."}
 ];
-const VIDEO = "";                          // enlace al video (YouTube, Drive, etc.); vacío = no se muestra
+const VIDEO = "";                          // enlace al video (YouTube, Drive, etc.); vacío = la tarjeta avisa que estará disponible próximamente
 const INTEGRANTES = [];                    // nombres del equipo, por ejemplo ["Nombre Apellido", "Nombre Apellido"]; vacío = no se muestran
 const COLAB = "https://colab.research.google.com/github/felipetecuanial-a11y/agrocebada/blob/main/codigo/AgroCebada_Cuaderno_Final.ipynb";
-const CSV_ENTREGA = "descargas/visionterradata_prediccion.csv";
 
 /* ===== Utilidades ===== */
 const $ = id => document.getElementById(id);
@@ -536,7 +651,7 @@ function ruta() {
   for (const x of VISTAS) $("v-" + x).hidden = x !== v;
   document.querySelectorAll(".menu a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
   document.body.style.overflow = v === "mapa" ? "hidden" : "";
-  ocultarTip();
+  ocultarTip(); $("toast").hidden = true;
   if (v === "mapa") {
     altoBarra();
     setTimeout(() => {
@@ -561,6 +676,28 @@ function tipEn(el, html) {
   el.addEventListener("blur", ocultarTip);
 }
 window.addEventListener("scroll", ocultarTip, {passive: true});
+
+/* ===== Aviso breve (descargas en espera) ===== */
+function aviso(texto) {
+  const t = $("toast"); t.textContent = texto; t.hidden = false;
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => t.hidden = true, 3200);
+}
+// Mientras DESCARGAS_ACTIVAS sea false, ningún botón de descarga baja el archivo: muestra el aviso.
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[download], a.descarga");
+  if (!a || DESCARGAS_ACTIVAS) return;
+  e.preventDefault();
+  aviso(a.dataset.aviso || "La descarga estará disponible próximamente.");
+});
+
+/* ===== Fórmulas: KaTeX las dibuja; si no carga, se queda la versión en texto ===== */
+function pintarFormulas() {
+  if (!window.katex) return;
+  document.querySelectorAll("[data-tex]").forEach(el => {
+    try { katex.render(el.dataset.tex, el, {displayMode: el.classList.contains("ec-formula"), throwOnError: false}); }
+    catch (e) { console.error(e); }
+  });
+}
 
 /* ===== Revisión del archivo de parcelas ===== */
 function verificar(j) {
@@ -689,7 +826,8 @@ function dibujar() {
     if ((filtros.estado && p.estado !== filtros.estado) || (filtros.municipio && p.municipio !== filtros.municipio) || (filtros.conjunto && p.conjunto !== filtros.conjunto)) continue;
     const poly = L.geoJSON(f, {style: estilo(p)}), punto = L.circleMarker([p.lat, p.lon], estiloPunto(p));
     poly.on("click", () => seleccionar(p.id)); punto.on("click", () => seleccionar(p.id));
-    poly.bindTooltip(p.id, {sticky: true, direction: "top"}); punto.bindTooltip(p.id, {direction: "top"});
+    const nombre = p.id + " (" + p.municipio + ")";
+    poly.bindTooltip(nombre, {sticky: true, direction: "top"}); punto.bindTooltip(nombre, {direction: "top"});
     capaPol.addLayer(poly); capaPun.addLayer(punto); capas.set(p.id, {poly, punto}); n++;
   }
   if (seleccion && capas.has(seleccion)) resaltar(seleccion);
@@ -830,31 +968,11 @@ function pintarModelo() {
   pasoAPaso(ids[0]);
   $("b-ejecutar").onclick = ejecutarTodo;
 }
-function leerCSV(texto) {
-  const lineas = texto.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim() !== "");
-  const cab = lineas[0].split(","), iId = cab.indexOf("ID_POLIGONO"), iR = cab.indexOf("RENDIMIENTO_T_HA");
-  if (iId < 0 || iR < 0) throw Error("el archivo no tiene las columnas ID_POLIGONO y RENDIMIENTO_T_HA");
-  return new Map(lineas.slice(1).map(l => { const c = l.split(","); return [c[iId], c[iR]]; }));
-}
-async function ejecutarTodo() {
-  const b = $("b-ejecutar"), out = $("r-ejecutar"); b.disabled = true; out.innerHTML = `<p class="nota">Calculando…</p>`;
-  try {
-    const r = await fetch(CSV_ENTREGA, {cache: "no-store"}); if (!r.ok) throw Error("HTTP " + r.status);
-    const oficial = leerCSV(await r.text());
-    const filas = []; let iguales = 0;
-    const ids = Object.keys(D.modelo.parcelas_prediccion).sort();
-    for (const id of ids) {
-      const c = calcular(id), calc = c.estimado.toFixed(4), ofi = oficial.get(id), ok = calc === ofi;
-      if (ok) iguales++;
-      filas.push(`<tr><td>${esc(id)}</td><td>${esc(c.municipio)}</td><td class="num">${calc}</td><td class="num">${esc(ofi ?? "no está")}</td><td class="${ok ? "ok" : "no"}">${ok ? "Coincide" : "Distinto"}</td></tr>`);
-    }
-    const todo = iguales === ids.length && oficial.size === ids.length;
-    out.innerHTML = `<p class="estado-ej ${todo ? "bien" : "mal"}">${iguales} de ${oficial.size} estimaciones calculadas aquí coinciden con el archivo de entrega.</p>`
-      + `<details open><summary>Ver las ${ids.length}</summary><div class="tabla-wrap" style="max-height:360px"><table class="tabla chica"><thead><tr><th>Parcela</th><th>Municipio</th><th class="num">Calculado aquí (t/ha)</th><th class="num">Archivo de entrega (t/ha)</th><th>Resultado</th></tr></thead><tbody>${filas.join("")}</tbody></table></div></details>`;
-  } catch (e) {
-    out.innerHTML = `<p class="estado-ej mal">No se pudo leer el archivo de entrega (${esc(e.message)}).</p>`;
-  }
-  b.disabled = false;
+function ejecutarTodo() {
+  const ids = Object.keys(D.modelo.parcelas_prediccion).sort();
+  const filas = ids.map(id => { const c = calcular(id); return `<tr><td>${esc(id)}</td><td>${esc(c.municipio)}</td><td class="num">${c.estimado.toFixed(4)}</td></tr>`; });
+  $("r-ejecutar").innerHTML = `<p class="estado-ej bien">Listo: ${ids.length} estimaciones calculadas.</p>`
+    + `<details open><summary>Ver las ${ids.length}</summary><div class="tabla-wrap" style="max-height:360px"><table class="tabla chica"><thead><tr><th>Parcela</th><th>Municipio</th><th class="num">Calculado (t/ha)</th></tr></thead><tbody>${filas.join("")}</tbody></table></div></details>`;
 }
 let paso = null;
 function pasoAPaso(id) {
@@ -882,9 +1000,8 @@ function actualizarPaso() {
   $("pa-tot").textContent = conSigno(c.correccion, 6);
   let h = `<p>Promedio de su municipio (${esc(r.municipio)}) = <b>${c.base.toFixed(6)}</b> t/ha</p>`
     + `<p>Estimación = ${c.base.toFixed(6)} ${c.correccion < 0 ? "−" : "+"} ${Math.abs(c.correccion).toFixed(6)} = <b>${c.estimado.toFixed(6)}</b> → <b>${c.estimado.toFixed(4)} t/ha</b></p>`;
-  if (!cambiados) h += `<p class="nota" style="margin:4px 0 0">Valor en el archivo de entrega: ${f4(D.porId.get(id).rend_pred)} t/ha.</p>`;
-  else {
-    h += `<p class="nota" style="margin:4px 0 0">Con ${cambiados} ${cambiados === 1 ? "mes cambiado" : "meses cambiados"} por ti. La estimación oficial de ${esc(id)} es ${f4(D.porId.get(id).rend_pred)} t/ha.</p>`;
+  if (cambiados) {
+    h += `<p class="nota" style="margin:4px 0 0">Con ${cambiados} ${cambiados === 1 ? "mes cambiado" : "meses cambiados"} por ti. Con los valores reales, la estimación de ${esc(id)} es ${f4(D.porId.get(id).rend_pred)} t/ha.</p>`;
     const fuera = tmax.map((v, k) => [v, k]).filter(([v, k]) => v !== r.tmax[k] && (v < D.rango[k][0] || v > D.rango[k][1]));
     if (fuera.length) h += `<p class="alerta">${fuera.map(([v, k]) => `${MESES[k][1]}: ${v.toFixed(2)} °C está fuera de lo observado en las 197 parcelas en 2025 (${f2(D.rango[k][0])} a ${f2(D.rango[k][1])} °C).`).join(" ")} El modelo no se probó con valores así.</p>`;
   }
@@ -944,14 +1061,13 @@ function pintarDatos(a) {
 }
 
 /* ===== Documentos ===== */
-async function pintarDocumentos() {
-  const lista = $("docs-lista"); let n = 0;
+function pintarDocumentos() {
+  const lista = $("docs-lista"); lista.replaceChildren();
   for (const d of DOCUMENTOS) {
-    try { const r = await fetch(d.archivo, {method: "HEAD", cache: "no-store"}); if (!r.ok) continue; } catch (e) { continue; }
-    lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>${esc(d.nombre)}</h3><p class="nota">${esc(d.texto)}</p><a class="boton borde" href="${esc(d.archivo)}" target="_blank" rel="noopener">Abrir el PDF</a></div>`); n++;
+    lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>${esc(d.nombre)}</h3><p class="nota">${esc(d.texto)}</p><a class="boton borde descarga" href="${esc(d.archivo)}" target="_blank" rel="noopener" data-aviso="El documento estará disponible próximamente.">Abrir el PDF</a></div>`);
   }
-  if (VIDEO) { lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>Video</h3><p class="nota">Demostración del modelo y de esta página (máximo 5 minutos).</p><a class="boton borde" href="${esc(VIDEO)}" target="_blank" rel="noopener">Ver el video</a></div>`); n++; }
-  $("docs-vacio").hidden = n > 0;
+  lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>Video</h3><p class="nota">Demostración del modelo y de esta página (máximo 5 minutos).</p><a class="boton borde" id="b-video" href="${esc(VIDEO || "#documentos")}" target="_blank" rel="noopener">Ver el video</a></div>`);
+  $("b-video").onclick = e => { if (!VIDEO) { e.preventDefault(); aviso("El video estará disponible próximamente."); } };
   $("equipo").innerHTML = INTEGRANTES.map(x => `<li>${esc(x)}</li>`).join("");
 }
 
