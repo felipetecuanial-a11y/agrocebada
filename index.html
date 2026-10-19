@@ -2,192 +2,982 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>AgroCebada: mapa de parcelas (v4)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgroCebada 2026 · Visión Terra Data</title>
+<meta name="description" content="Estimación del rendimiento de cebada de 59 parcelas de Hidalgo, Puebla y Tlaxcala. Reto AgroCebada FIRA 2026, equipo Visión Terra Data.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 34'%3E%3Cpath d='M13 33V13' stroke='%232B6629' stroke-width='2.4' stroke-linecap='round'/%3E%3Cg fill='%23D9A32B'%3E%3Cellipse cx='13' cy='5' rx='3.2' ry='5'/%3E%3Cellipse cx='7.5' cy='12' rx='3' ry='5' transform='rotate(-24 7.5 12)'/%3E%3Cellipse cx='18.5' cy='12' rx='3' ry='5' transform='rotate(24 18.5 12)'/%3E%3Cellipse cx='7.5' cy='20' rx='3' ry='5' transform='rotate(-24 7.5 20)'/%3E%3Cellipse cx='18.5' cy='20' rx='3' ry='5' transform='rotate(24 18.5 20)'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{
-  --agua:#B5D3E3; --agua-tinta:#5E8AA3;
-  --tierra-ext:#E3E1D8; --tierra:#F7F4EA; --linde:#B4AE9A;
-  --cebada:#D9A32B; --campo:#6DAE5B; --campo-osc:#2B6629; --campo-claro:#E6F1E0;
-  --pred:#3D3FA6;
-  --tinta:#22301F; --tinta-2:#5A6656; --papel:#FFFFFF; --raya:#E4E2DA;
-  --sombra:0 2px 10px rgba(34,48,31,.22);
+  --tierra:#F7F4EA; --raya:#E4E2DA; --linde:#B4AE9A;
+  --cebada:#D9A32B; --campo-osc:#2B6629; --campo-claro:#E6F1E0; --pred:#3D3FA6; --pred-claro:#E9E9F7;
+  --tinta:#22301F; --tinta-2:#5A6656; --papel:#FFFFFF; --gris:#A9A69A; --gris-osc:#6E6C62;
+  --sube:#2a78d6; --baja:#e34948;
+  --sombra:0 2px 10px rgba(34,48,31,.18); --sombra-2:0 1px 4px rgba(34,48,31,.16);
   --fuente:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --barra:60px;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{font-family:var(--fuente);color:var(--tinta);background:var(--agua);overflow:hidden;-webkit-font-smoothing:antialiased}
-button{font-family:inherit;color:inherit;cursor:pointer}
-button:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
-#app{position:fixed;inset:0}
+body{margin:0;font-family:var(--fuente);color:var(--tinta);background:var(--tierra);-webkit-font-smoothing:antialiased;line-height:1.45}
+a{color:var(--campo-osc)}
+button,select,input{font-family:inherit;font-size:15px;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
+[hidden]{display:none!important}
 
+/* barra superior */
+.barra{position:sticky;top:0;z-index:20;background:var(--campo-osc);color:#fff;display:flex;align-items:center;gap:18px;padding:0 16px;min-height:60px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.marca{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;flex:none;padding:8px 0}
+.marca b{display:block;font-size:18px;letter-spacing:-.01em;line-height:1.1}
+.marca small{display:block;font-size:12px;opacity:.85}
+.menu{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+.menu::-webkit-scrollbar{display:none}
+.menu a{color:#fff;text-decoration:none;font-size:15px;padding:8px 12px;border-radius:999px;white-space:nowrap;opacity:.9}
+.menu a:hover{background:rgba(255,255,255,.12);opacity:1}
+.menu a[aria-current="page"]{background:#fff;color:var(--campo-osc);font-weight:600;opacity:1}
+@media(max-width:760px){.barra{flex-wrap:wrap;gap:0 12px;padding:2px 10px 8px}.marca{padding:6px 0 4px}.menu{flex-basis:100%}.menu a{padding:7px 11px}}
 
-#mapa{position:absolute;inset:0;background:#E3E1D8}.arriba{z-index:5;position:absolute;top:10px;left:10px;width:min(750px,calc(100% - 20px));pointer-events:none}.arriba>*{pointer-events:auto}
-.fila1{display:flex;gap:8px;margin-bottom:8px}.inicio{border:0;background:#2B6629;color:white;padding:12px;border-radius:10px;cursor:pointer}.marca{background:white;border-radius:10px;padding:8px 14px;box-shadow:var(--sombra)}.marca h1{font-size:17px;margin:0}.marca p{font-size:12px;margin:0}.filtros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;background:white;border-radius:12px;padding:12px;box-shadow:var(--sombra)}
-.filtros label{display:flex;flex-direction:column;font-size:13px;font-weight:600;gap:4px;min-width:0}.filtros select,.filtros input{height:42px;border:1px solid #bbb;border-radius:8px;min-width:0;padding:5px;font:14px system-ui;width:100%}.acciones{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;align-items:center}.acciones button,#buscar{border:0;border-radius:8px;background:#E6F1E0;padding:8px;cursor:pointer}.busqueda{display:flex;gap:4px}.contador{font-size:14px;font-weight:600}
-#aviso{position:absolute;z-index:4;left:50%;top:53%;transform:translate(-50%,-50%);background:white;border-radius:12px;padding:18px;box-shadow:var(--sombra);text-align:center;width:max-content;max-width:90vw}#aviso[hidden]{display:none}.leyenda{position:absolute;right:12px;bottom:18px;z-index:3;background:white;border-radius:10px;padding:12px;box-shadow:var(--sombra);font-size:13px}.leyenda p{margin:5px 0}.leyenda i{display:inline-block;width:12px;height:12px;border-radius:100%;margin-right:8px}.panel{position:absolute;bottom:10px;left:10px;z-index:4;max-height:55vh;overflow:auto;background:#fff;padding:14px;border-radius:12px;box-shadow:var(--sombra);width:min(400px,calc(100% - 20px))}.panel[hidden]{display:none}.panel button{float:right;border:none;background:white;font-size:22px}.ficha table{border-collapse:collapse;width:100%;font-size:13px}.ficha td,.ficha th{padding:5px;border-bottom:1px solid #ddd;text-align:left}.ficha h3{margin:2px 0 10px}.ficha p{font-size:14px}.ficha .nota{color:#5A6656;font-size:12px}.leaflet-popup-content{max-height:48vh;overflow-y:auto}
-@media(max-width:650px){.filtros{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px}.leyenda{font-size:11px;max-width:200px}.panel{max-height:42vh}}
-/* pantallas: inicio, descarga, modelo */
-.pag{position:absolute;inset:0;z-index:6;background:var(--tierra);overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pag[hidden]{display:none}
-.pag-in{max-width:880px;margin:0 auto;padding:16px 16px 40px}
-.portada{background:var(--campo-osc);color:#fff;padding:34px 20px 30px}
-.portada div{max-width:848px;margin:0 auto;display:flex;gap:16px;align-items:center}
-.portada svg{flex:none}
-.portada h1{font-size:34px;line-height:1.05;margin:0;letter-spacing:-.02em}
-.portada p{margin:6px 0 0;font-size:16px;line-height:1.35;opacity:.92;max-width:34ch}
-.pregunta{font-size:19px;font-weight:700;margin:22px 2px 12px}
-.puertas{display:grid;gap:12px}
-.puerta{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--papel);border:2px solid transparent;border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(34,48,31,.18);min-height:92px}
-.puerta:active{border-color:var(--campo-osc)}
-.puerta .ico{flex:none;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:var(--campo-claro);color:var(--campo-osc)}
-.puerta strong{display:block;font-size:18.5px;line-height:1.2}
-.puerta span{display:block;font-size:15px;line-height:1.35;color:var(--tinta-2);margin-top:3px}
-.aviso-sim{font-size:14px;color:var(--tinta-2);margin:20px 2px 0;line-height:1.4}
-.pag-cab{position:sticky;top:0;z-index:1;background:var(--tierra);display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--raya)}
-.pag-cab .inicio{box-shadow:none}
-.pag-cab h2{font-size:20px;margin:0;line-height:1.15}
-.caja{background:var(--papel);border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(34,48,31,.18);margin-top:14px}
-.caja h3{font-size:17px;margin:0 0 4px}
-.caja>p{font-size:15px;line-height:1.4;color:var(--tinta-2);margin:0 0 12px}
-.elige{font-size:14px;font-weight:600;color:var(--tinta-2);margin:16px 0 6px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1.5px solid #C9C6B8;background:var(--papel);font-size:15.5px}
-.chip[aria-pressed="true"]{background:var(--campo-osc);border-color:var(--campo-osc);color:#fff;font-weight:600}
-.bajar{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:60px;border:0;border-radius:12px;background:var(--campo-osc);color:#fff;padding:10px 16px;margin-top:10px}
-.bajar strong{display:block;font-size:16px;line-height:1.2}
-.bajar span{display:block;font-size:13.5px;opacity:.9;margin-top:2px}
-.bajar svg{flex:none}
-.bajar:disabled{background:#D8D6CC;color:#6E6C62;cursor:default}
-.bajar.sec{background:var(--campo-claro);color:#173F16;border:1.5px solid var(--campo-osc)}
-.estado-dl{overflow-wrap:anywhere;font-size:14.5px;line-height:1.4;margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--campo-claro);color:#173F16}
-.estado-dl:empty{display:none}
-.vista{overflow-x:auto;margin-top:12px;border:1px solid var(--raya);border-radius:10px}
-.vista table{border-collapse:collapse;font-size:13.5px;white-space:nowrap;width:100%}
-.vista th,.vista td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--raya)}
-.vista th{background:#F3F1E8;font-weight:600;color:var(--tinta-2)}
-.vista th:nth-child(-n+4),.vista td:nth-child(-n+4){text-align:left}
-.vista tr:last-child td{border-bottom:0}
-.pend{display:inline-block;font-size:13.5px;font-weight:600;padding:4px 10px;border-radius:12px;background:#F6E7C1;color:#6B4E07;margin-bottom:10px}
-.ficha{display:grid;grid-template-columns:1fr;margin:0}
-.ficha div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--raya);font-size:15px}
-.ficha dt{color:var(--tinta-2)}
-.ficha dd{margin:0;font-weight:600;text-align:right}
-@media (min-width:760px){
-  .puertas{grid-template-columns:repeat(3,1fr)}
-  .puerta{flex-direction:column;align-items:flex-start;min-height:190px}
-  .portada{padding:52px 20px 44px}.portada h1{font-size:44px}
+/* vistas */
+.vista{padding-bottom:48px}
+.ancho{max-width:1060px;margin:0 auto;padding:0 16px}
+h1{font-size:30px;line-height:1.15;margin:28px 0 8px;letter-spacing:-.015em}
+h2{font-size:21px;margin:30px 0 10px;line-height:1.2}
+h3{font-size:17px;margin:0 0 6px}
+.lead{font-size:17px;color:var(--tinta-2);max-width:72ch;margin:0 0 16px}
+.nota{font-size:13.5px;color:var(--tinta-2);margin:8px 0}
+.caja{background:var(--papel);border-radius:16px;padding:18px;box-shadow:var(--sombra-2);margin:14px 0}
+.caja>p{margin:6px 0}
+.boton{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:12px;background:var(--campo-osc);color:#fff;text-decoration:none;font-weight:600;border:0;font-size:15px}
+.boton.borde{background:var(--papel);color:var(--campo-osc);border:1.5px solid var(--campo-osc)}
+.boton.claro{background:#fff;color:var(--campo-osc)}
+.boton.blanco-borde{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.8)}
+.boton.chico{min-height:36px;padding:6px 12px;font-size:14px}
+.botones{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+
+/* inicio */
+.portada{background:var(--campo-osc);color:#fff;padding:40px 0 34px}
+.portada h1{color:#fff;font-size:38px;max-width:22ch;margin:6px 0 10px}
+.portada p{font-size:17px;max-width:64ch;opacity:.93;margin:0}
+.antetitulo{font-size:14px!important;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#F3DFA5;opacity:1!important}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:-22px}
+.tile{background:var(--papel);border-radius:16px;padding:16px;box-shadow:var(--sombra)}
+.tile .et{font-size:13.5px;color:var(--tinta-2);font-weight:600}
+.tile .va{font-size:30px;font-weight:650;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .va.rango{font-size:24px}
+.tile .va small{font-size:15px;font-weight:600;color:var(--tinta-2);margin-left:4px}
+.tile .su{font-size:13px;color:var(--tinta-2)}
+.puertas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.puerta{display:block;background:var(--papel);border-radius:16px;padding:16px;box-shadow:var(--sombra-2);text-decoration:none;color:var(--tinta);border:2px solid transparent}
+.puerta:hover{border-color:var(--campo-osc)}
+.puerta b{display:block;font-size:17px;margin-bottom:3px;color:var(--campo-osc)}
+.puerta span{font-size:14.5px;color:var(--tinta-2)}
+.frase p{font-size:17px}
+@media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.puertas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.portada{padding:28px 0 32px}.portada h1{font-size:27px}.tile{padding:12px}.tile .va{font-size:23px}.tile .va.rango{font-size:18px}.puertas{grid-template-columns:1fr}h1{font-size:25px}}
+
+/* mapa */
+.vista-mapa{position:fixed;left:0;right:0;bottom:0;top:var(--barra);padding:0}
+#mapa{position:absolute;inset:0;background:#E3E1D8;z-index:0}
+.filtros-mapa{position:absolute;z-index:5;top:10px;left:10px;width:min(860px,calc(100% - 20px));background:var(--papel);border-radius:14px;padding:12px;box-shadow:var(--sombra);display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.45fr);gap:8px}
+.filtros-mapa label,.filtros-linea label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;min-width:0}
+.filtros-mapa select,.filtros-mapa input,.filtros-linea select,.filtros-linea input{height:42px;border:1px solid #BDB9AA;border-radius:9px;padding:5px 8px;background:#fff;min-width:0;width:100%;font-size:14.5px}
+.busca span{display:flex;gap:4px}
+.busca button{border:0;border-radius:9px;background:var(--campo-claro);padding:0 10px;font-weight:600;font-size:14px}
+.fila-acc{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#contador{font-size:14px;font-weight:600}
+#b-limpiar{border:0;border-radius:9px;background:var(--campo-claro);padding:8px 12px;font-size:14px}
+#b-filtros{display:none;grid-column:1/-1;border:0;border-radius:9px;background:var(--campo-claro);padding:9px 12px;font-weight:650;font-size:14.5px;text-align:left}
+#b-filtros::after{content:" ▾"}
+.filtros-mapa.abierto #b-filtros::after{content:" ▴"}
+.leyenda{background:var(--papel);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);font-size:13px;max-width:250px;line-height:1.35}
+.leyenda b{display:block;margin-bottom:4px}
+.leyenda p{margin:4px 0;display:flex;align-items:center;gap:8px}
+.leyenda i{flex:none;display:inline-block;width:14px;height:14px;border-radius:4px}
+.leyenda i.borde{background:#fff!important;border:2.5px solid}
+.panel{position:absolute;z-index:4;left:10px;bottom:10px;width:min(440px,calc(100% - 20px));max-height:calc(100% - 200px);overflow:auto;background:var(--papel);border-radius:14px;padding:16px;box-shadow:var(--sombra)}
+.cerrar{float:right;border:0;background:transparent;font-size:26px;line-height:1;padding:0 4px;color:var(--tinta-2)}
+.aviso{position:absolute;z-index:6;left:50%;top:55%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;padding:16px 18px;box-shadow:var(--sombra);max-width:90vw;text-align:center}
+@media(max-width:760px){
+  .filtros-mapa{grid-template-columns:1fr 1fr;padding:8px;gap:6px}
+  .filtros-mapa select,.filtros-mapa input{height:38px}
+  #b-filtros{display:block}
+  .filtros-mapa:not(.abierto)>label{display:none}
+  .busca{grid-column:1/-1}
+  .leyenda{font-size:11.5px;max-width:165px;padding:8px 10px}
+  .leyenda .extra{display:none}
+  .leaflet-control-zoom{display:none}
+  .panel{max-height:52%;padding:14px}
 }
+
+/* ficha de parcela */
+.ficha-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ficha-cab h3{font-size:20px;margin:0}
+.etq{font-size:12.5px;font-weight:650;padding:3px 9px;border-radius:999px}
+.etq.ent{background:var(--campo-claro);color:#1E4D1C}
+.etq.pred{background:var(--pred-claro);color:#2A2C80}
+.datos{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:10px 0;font-size:14.5px}
+.datos dt{color:var(--tinta-2)}
+.datos dd{margin:0;font-weight:600}
+.resultado{background:var(--tierra);border-radius:12px;padding:10px 12px;margin:10px 0}
+.resultado span{display:block;font-size:13px;color:var(--tinta-2);font-weight:600}
+.resultado b{font-size:26px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.resultado .suma{font-size:14px;margin:4px 0 0;color:var(--tinta)}
+.resultado .suma b{font-size:14px;letter-spacing:0}
+.ficha h4{font-size:15px;margin:14px 0 2px}
+.grafica{width:100%;height:auto;display:block;overflow:visible;margin-top:4px}
+.grafica text{font-family:var(--fuente);fill:var(--tinta-2);font-size:12px;font-variant-numeric:tabular-nums}
+.grafica .lbl{fill:var(--tinta);font-size:12.5px}
+.grafica .lbl.tot{font-weight:700}
+.grafica .hit{fill:transparent}
+.grafica .fila-g:hover .barra-g,.grafica .fila-g:focus .barra-g{opacity:.75}
+.grafica .fila-g:focus{outline:none}
+.grafica .fila-g:focus .hit{stroke:var(--cebada);stroke-width:2}
+.leyenda-g{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--tinta-2);margin:6px 0 0}
+.leyenda-g i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+details{margin:8px 0}
+summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--campo-osc)}
+
+/* tablas */
+.tabla-wrap{overflow:auto;background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2)}
+.tabla{border-collapse:collapse;width:100%;font-size:14px}
+.tabla th,.tabla td{padding:8px 10px;border-bottom:1px solid var(--raya);text-align:left;white-space:nowrap}
+.tabla th{background:#F1EFE6;font-size:13px;color:var(--tinta-2);position:sticky;top:0;z-index:1}
+.tabla td.num,.tabla th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tabla tbody tr:last-child td{border-bottom:0}
+.tabla tr.total td{border-top:1.5px solid var(--linde);font-weight:700}
+.tabla th button{border:0;background:none;font-weight:700;color:var(--tinta-2);font-size:13px;padding:0}
+.tabla th button::after{content:" ↕";opacity:.45}
+#t-pred tbody tr{cursor:pointer}
+#t-pred tbody tr:hover,#t-pred tbody tr.sel{background:var(--pred-claro)}
+.tabla .ok{color:var(--campo-osc);font-weight:700}
+.tabla .no{color:#B42318;font-weight:700}
+.tabla.chica td,.tabla.chica th{padding:6px 8px;font-size:13px}
+.tabla input{width:92px;height:32px;border:1px solid #BDB9AA;border-radius:7px;padding:3px 6px;text-align:right;font-variant-numeric:tabular-nums;font-size:13.5px;background:#FFFDF5}
+.tabla input.cambio{border-color:var(--cebada);background:#FFF4D6;font-weight:700}
+.filtros-linea{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:12px 0}
+.filtros-linea label{min-width:180px}
+#p-cuenta{font-size:14px;font-weight:600;color:var(--tinta-2);padding-bottom:10px}
+.ancho.amplio{max-width:1240px}
+.dos-col{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+#t-pred th,#t-pred td{padding:8px 8px}
+.tabla-alta{max-height:640px}
+.detalle{background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);padding:16px;position:sticky;top:calc(var(--barra) + 12px);max-height:calc(100vh - var(--barra) - 24px);overflow:auto}
+@media(max-width:900px){.dos-col{grid-template-columns:1fr}.detalle{position:static;max-height:none}.tabla-alta{max-height:420px}}
+
+/* modelo */
+.pasos{counter-reset:p;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.pasos li{counter-increment:p;background:var(--papel);border-radius:14px;padding:14px 14px 14px 56px;position:relative;box-shadow:var(--sombra-2)}
+.pasos li::before{content:counter(p);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--campo-osc);color:#fff;display:grid;place-items:center;font-weight:700}
+.formula{font-size:20px;text-align:center;padding:16px 10px;background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);margin:12px 0;overflow-x:auto;white-space:nowrap}
+.formula var{font-style:italic;font-family:Georgia,"Times New Roman",serif}
+.formula sub,.formula sup{font-size:.68em}
+.formula.chica{font-size:16px}
+.clave{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14.5px}
+.clave dt{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:600}
+.clave dd{margin:0}
+.ejecuta{border:2px solid var(--campo-osc)}
+.estado-ej{font-size:16px;font-weight:650;margin:10px 0}
+.estado-ej.bien{color:var(--campo-osc)}
+.estado-ej.mal{color:#B42318}
+.calculo{background:var(--tierra);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:14.5px;font-variant-numeric:tabular-nums}
+.calculo p{margin:3px 0}
+.alerta{background:#FFF4D6;border-left:4px solid var(--cebada);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:14px}
+.pregunta{background:var(--papel);border-radius:14px;padding:14px 16px;box-shadow:var(--sombra-2);margin:10px 0}
+.pregunta h3{color:var(--campo-osc)}
+.pregunta p{margin:4px 0}
+ul.limpia{padding-left:20px;margin:6px 0}
+ul.limpia li{margin:5px 0}
+
+/* resultados */
+.tiles.r{grid-template-columns:repeat(5,minmax(0,1fr));margin-top:6px}
+@media(max-width:900px){.tiles.r{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.puntos{background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);padding:14px}
+.fila-p{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,1.15fr) 62px;gap:10px;align-items:center;min-height:26px;padding:2px 4px;border-radius:6px}
+.fila-p:hover,.fila-p:focus{background:#F6F5EF}
+.fila-p .n{font-size:13.5px;line-height:1.25}
+.fila-p .n b{font-weight:650}
+.pista{position:relative;height:22px}
+.pista::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--raya)}
+.pista .ref{position:absolute;top:-3px;bottom:-3px;border-left:1px dashed var(--gris-osc)}
+.pista i{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:var(--gris);box-shadow:0 0 0 2px #fff}
+.pista i.gana{background:var(--campo-osc);width:13px;height:13px;margin:-6.5px 0 0 -6.5px}
+.pista i.refm{background:var(--gris-osc)}
+.fila-p .v{font-size:13px;text-align:right;font-variant-numeric:tabular-nums;color:var(--tinta-2)}
+.eje-p{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,1.15fr) 62px;gap:10px;margin-top:6px;padding:0 4px}
+.eje-p .marcas{position:relative;height:18px;font-size:12px;color:var(--tinta-2);border-top:1px solid var(--linde)}
+.eje-p .marcas span{position:absolute;top:2px;transform:translateX(-50%);font-variant-numeric:tabular-nums}
+.eje-p .marcas span:first-child{transform:none}
+.leyenda-p{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--tinta-2);margin:0 0 8px}
+.leyenda-p i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.leyenda-p .lin{display:inline-block;width:0;height:12px;border-left:1px dashed var(--gris-osc);margin:0 6px 0 4px;vertical-align:-2px}
+.figuras{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.figura{background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);padding:12px;margin:0}
+.figura img{width:100%;height:auto;display:block;border-radius:8px}
+.figura figcaption{font-size:13.5px;color:var(--tinta-2);margin-top:8px}
+@media(max-width:800px){.figuras{grid-template-columns:1fr}.fila-p,.eje-p{grid-template-columns:minmax(0,1fr) minmax(110px,1fr) 50px;gap:6px}.fila-p .n{font-size:12.5px}}
+
+/* código */
+.seccion-c{background:var(--papel);border-radius:12px;box-shadow:var(--sombra-2);margin:8px 0;padding:0}
+.seccion-c>summary{padding:12px 14px;font-size:15.5px;color:var(--tinta)}
+.seccion-c>div{padding:0 14px 14px;overflow-x:auto}
+.seccion-c table{border-collapse:collapse;font-size:13px;margin:8px 0}
+.seccion-c td,.seccion-c th{border:1px solid var(--raya);padding:4px 6px;text-align:left}
+pre.codigo{background:#1F2A1D;color:#EAF0E6;border-radius:10px;padding:12px;overflow:auto;font-size:12.5px;line-height:1.45;max-height:460px;margin:10px 0 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:not(pre)>code{overflow-wrap:anywhere}
+.huella{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:#EFEDE4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+
+/* datos y documentos */
+.grupo-d h2{margin-top:26px}
+.archivo{background:var(--papel);border-radius:14px;box-shadow:var(--sombra-2);padding:14px 16px;margin:10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px}
+.archivo h3{font-size:16px;margin:0;overflow-wrap:anywhere}
+.archivo h3 small{font-weight:500;color:var(--tinta-2);font-size:13px;margin-left:6px}
+.archivo p{margin:2px 0;font-size:14.5px;grid-column:1}
+.archivo p b{color:var(--tinta-2);font-weight:650}
+.archivo p.h{font-size:12px;color:var(--tinta-2);overflow-wrap:anywhere}
+.archivo .boton{grid-column:2;grid-row:1/span 5;align-self:center}
+@media(max-width:640px){.archivo{grid-template-columns:1fr}.archivo .boton{grid-column:1;grid-row:auto;justify-self:start}}
+.docs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:640px){.docs{grid-template-columns:1fr}}
+.pie{border-top:1px solid var(--raya);margin-top:36px;padding-top:14px;font-size:13px;color:var(--tinta-2)}
+
+/* tooltip */
+.tip{position:fixed;z-index:50;pointer-events:none;background:#22301F;color:#fff;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;max-width:290px;box-shadow:var(--sombra)}
+.tip b{font-size:15px}
+.tip .s{opacity:.82}
 </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
-<div id="app">
-  <div id="mapa" aria-label="Mapa interactivo de AgroCebada"></div>
-  <div class="arriba"><div class="fila1"><button class="inicio" data-ir="inicio">Inicio</button><div class="marca"><h1>AgroCebada</h1><p>Parcelas reales</p></div></div>
-   <div class="filtros">
-    <label>Estado<select id="estado"><option value="">Todos</option><option>Hidalgo</option><option>Puebla</option><option>Tlaxcala</option></select></label>
-    <label>Municipio<select id="municipio"><option value="">Todos</option></select></label>
-    <label>Conjunto<select id="conjunto"><option value="">Todos</option><option value="ENTRENAMIENTO">Entrenamiento</option><option value="PREDICCION">Predicción</option></select></label>
-    <label>Identificador<div class="busqueda"><input type="search" id="id" placeholder="AGC_003"><button id="buscar" aria-label="Buscar">⌕</button></div></label>
-    <div class="acciones"><span class="contador" id="contador">Mostrando 0 de 197 parcelas</span><button id="limpiar">Limpiar filtros</button></div>
-   </div></div>
-  <div id="aviso" role="status">Datos de las parcelas pendientes de publicar</div>
-  <div class="leyenda"><strong>Conjuntos</strong><p><i style="background:#2B6629"></i>Entrenamiento: rendimiento observado (138)</p><p><i style="background:#3D3FA6"></i>Predicción: estimada por el modelo (59)</p></div>
-  <section class="panel" id="panel" hidden></section>
-  <section class="pag" id="p-inicio">
-    <div class="portada"><div><svg width="46" height="60" viewBox="0 0 26 34" aria-hidden="true"><path d="M13 33V13" stroke="#E9D08A" stroke-width="2" stroke-linecap="round"/><g fill="#D9A32B"><ellipse cx="13" cy="5" rx="3.2" ry="5"/><ellipse cx="7.5" cy="12" rx="3" ry="5" transform="rotate(-24 7.5 12)"/><ellipse cx="18.5" cy="12" rx="3" ry="5" transform="rotate(24 18.5 12)"/><ellipse cx="7.5" cy="20" rx="3" ry="5" transform="rotate(-24 7.5 20)"/><ellipse cx="18.5" cy="20" rx="3" ry="5" transform="rotate(24 18.5 20)"/></g></svg><span><h1>AgroCebada</h1><p>Parcelas de cebada en Puebla, Tlaxcala e Hidalgo</p></span></div></div>
-    <div class="pag-in">
-      <p class="pregunta">¿Qué quieres hacer?</p>
-      <div class="puertas">
-        <button class="puerta" data-ir="mapa"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg></i><div><strong>Visualización de datos</strong><span>Mira las parcelas en el mapa y filtra por estado, municipio y conjunto.</span></div></button>
-        <button class="puerta" data-ir="descarga"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><div><strong>Descarga de datos</strong><span>Baja la información de las parcelas en un archivo para Excel.</span></div></button>
-        <button class="puerta" data-ir="modelo"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 16c3-1 4-7 6-7s2 3 6-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></i><div><strong>Modelo matemático</strong><span>El modelo estadístico de la estimación y la descarga de sus resultados.</span></div></button>
-      </div>
-      
-    </div>
-  </section>
+<header class="barra" id="barra">
+  <a class="marca" href="#inicio" aria-label="AgroCebada: ir al inicio">
+    <svg width="22" height="30" viewBox="0 0 26 34" aria-hidden="true"><path d="M13 33V13" stroke="#E9D08A" stroke-width="2" stroke-linecap="round"/><g fill="#D9A32B"><ellipse cx="13" cy="5" rx="3.2" ry="5"/><ellipse cx="7.5" cy="12" rx="3" ry="5" transform="rotate(-24 7.5 12)"/><ellipse cx="18.5" cy="12" rx="3" ry="5" transform="rotate(24 18.5 12)"/><ellipse cx="7.5" cy="20" rx="3" ry="5" transform="rotate(-24 7.5 20)"/><ellipse cx="18.5" cy="20" rx="3" ry="5" transform="rotate(24 18.5 20)"/></g></svg>
+    <span><b>AgroCebada</b><small>Visión Terra Data</small></span>
+  </a>
+  <nav class="menu" aria-label="Secciones de la página">
+    <a href="#inicio">Inicio</a><a href="#mapa">Mapa</a><a href="#predicciones">Predicciones</a><a href="#modelo">El modelo</a><a href="#resultados">Resultados</a><a href="#codigo">Código</a><a href="#datos">Datos</a><a href="#documentos">Documentos</a>
+  </nav>
+</header>
 
-  <section class="pag" id="p-descarga" hidden><div class="pag-cab"><button class="inicio" data-ir="inicio">Inicio</button><h2>Descarga de datos</h2></div><div class="pag-in"><div class="caja"><h3>Datos reales</h3><p>Las descargas estarán disponibles cuando se publique el GeoJSON verificado; no se utilizan archivos de prueba.</p><a id="descargar" href="data/parcelas_agrocebada.geojson" download hidden>Descargar parcelas reales (GeoJSON)</a><p id="dl-info">Datos de las parcelas pendientes de publicar</p></div></div></section>
-  <section class="pag" id="p-modelo" hidden>
-    <div class="pag-cab"><button class="inicio" data-ir="inicio">Inicio</button><h2>Modelo matemático</h2></div>
-    <div class="pag-in">
-      <div class="caja">
-        <span class="pend">Pendiente de cargar</span>
-        <h3>Modelo estadístico</h3>
-        <p>Aquí va a ir el modelo que se ejecutó por programación: qué estima, con qué datos se entrenó y qué tan bien acierta.</p>
-        <dl class="ficha">
-          <div><dt>Modelo</dt><dd>Por definir</dd></div>
-          <div><dt>Qué estima</dt><dd>Por definir</dd></div>
-          <div><dt>Periodo de la estimación</dt><dd>Abril a octubre</dd></div>
-          <div><dt>Parcelas de entrenamiento</dt><dd>138</dd></div>
-          <div><dt>Parcelas de predicción</dt><dd>59</dd></div>
-        </dl>
-      </div>
-      <div class="caja">
-        <h3>Descarga de resultados según el modelo</h3>
-        <p>Cuando el modelo esté cargado, aquí se bajan sus resultados para las 59 parcelas de predicción.</p>
-        <button class="bajar" disabled><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Descargar resultados del modelo</strong><span>Todavía no hay resultados cargados</span></div></button>
-        <button class="bajar sec" data-dl="plantilla"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Descargar plantilla de resultados</strong><span>Las 59 parcelas de predicción, con la columna del resultado vacía</span></div></button>
-        <p class="estado-dl" id="md-msg" aria-live="polite"></p>
-      </div>
+<main>
+<!-- ================= INICIO ================= -->
+<section class="vista" id="v-inicio">
+  <div class="portada"><div class="ancho">
+    <p class="antetitulo">Reto AgroCebada FIRA 2026</p>
+    <h1>Rendimiento de cebada en 197 parcelas de Hidalgo, Puebla y Tlaxcala</h1>
+    <p>Estimamos en toneladas por hectárea (t/ha) el rendimiento de grano de 59 parcelas en el ciclo de abril a octubre de 2025, con un modelo validado en las 138 parcelas cuyo rendimiento proporcionó FIRA (Fideicomisos Instituidos en Relación con la Agricultura).</p>
+    <div class="botones"><a class="boton claro" href="#mapa">Ver el mapa</a><a class="boton blanco-borde" href="#modelo">Cómo funciona el modelo</a></div>
+  </div></div>
+  <div class="ancho">
+    <div class="tiles">
+      <div class="tile"><div class="et">Parcelas</div><div class="va">197</div><div class="su">138 con rendimiento observado · 59 estimadas</div></div>
+      <div class="tile"><div class="et">Estimaciones de las 59</div><div class="va rango" id="i-rango">…</div><div class="su">t/ha, de la más baja a la más alta</div></div>
+      <div class="tile"><div class="et">Error de validación</div><div class="va">0.4948<small>t/ha</small></div><div class="su">RMSE (raíz del error cuadrático medio); el promedio municipal da 0.5126</div></div>
+      <div class="tile"><div class="et">Frente al promedio municipal</div><div class="va">10 de 10</div><div class="su">repartos con menor error, y 10 de 10 en la confirmación</div></div>
     </div>
-  </section>
-</div>
+    <div class="caja frase">
+      <h2 style="margin-top:4px">El modelo en una frase</h2>
+      <p>Cada estimación parte del <b>rendimiento promedio de su municipio</b> y lo corrige un poco según la <b>temperatura máxima de abril a octubre de 2025</b> de la parcela, comparada con el promedio de las parcelas de entrenamiento de su municipio.</p>
+    </div>
+    <h2>¿Qué quieres consultar?</h2>
+    <div class="puertas">
+      <a class="puerta" href="#mapa"><b>Mapa de parcelas</b><span>Las 197 parcelas reales, filtrables por estado, municipio y conjunto, con la ficha de cada una.</span></a>
+      <a class="puerta" href="#predicciones"><b>Las 59 predicciones</b><span>Tabla con el rendimiento estimado de cada parcela, promedios por municipio y descargas.</span></a>
+      <a class="puerta" href="#modelo"><b>El modelo, paso a paso</b><span>Cómo funciona, sus fórmulas y un botón para ejecutarlo aquí mismo.</span></a>
+      <a class="puerta" href="#resultados"><b>Resultados de la validación</b><span>Cuánto se equivoca y cómo se comparó contra otros 42 modelos.</span></a>
+      <a class="puerta" href="#codigo"><b>Código</b><span>El cuaderno completo: verlo, descargarlo o abrirlo en Google Colab.</span></a>
+      <a class="puerta" href="#datos"><b>Datos para ejecutar el código</b><span>Los archivos que usa el modelo, qué contiene cada uno y cómo se obtuvo.</span></a>
+    </div>
+    <p class="pie">AgroCebada 2026 · Equipo Visión Terra Data · Datos de las parcelas, rendimientos, clima, relieve e índices satelitales: FIRA (Fideicomisos Instituidos en Relación con la Agricultura). <a href="#documentos">Documentos de la propuesta</a>.</p>
+  </div>
+</section>
+
+<!-- ================= MAPA ================= -->
+<section class="vista vista-mapa" id="v-mapa" hidden>
+  <div id="mapa" aria-label="Mapa interactivo de las 197 parcelas"></div>
+  <div class="filtros-mapa" id="filtros-mapa">
+    <button type="button" id="b-filtros" aria-expanded="false">Filtros y búsqueda</button>
+    <label>Estado<select id="f-estado"><option value="">Todos</option></select></label>
+    <label>Municipio<select id="f-municipio"><option value="">Todos</option></select></label>
+    <label>Conjunto<select id="f-conjunto"><option value="">Todos</option><option value="ENTRENAMIENTO">Entrenamiento</option><option value="PREDICCION">Predicción</option></select></label>
+    <label>Colorear por<select id="f-color"><option value="conjunto">Conjunto</option><option value="rend">Rendimiento</option></select></label>
+    <label class="busca">Identificador<span><input id="f-id" type="search" placeholder="AGC_003" autocomplete="off"><button id="b-buscar" type="button">Buscar</button></span></label>
+    <div class="fila-acc"><span id="contador" aria-live="polite">Cargando parcelas…</span><button id="b-limpiar" type="button">Limpiar filtros</button></div>
+  </div>
+  <div class="leyenda" id="leyenda"></div>
+  <aside class="panel" id="panel" hidden></aside>
+  <div class="aviso" id="aviso" role="status" hidden></div>
+</section>
+
+<!-- ================= PREDICCIONES ================= -->
+<section class="vista" id="v-predicciones" hidden>
+  <div class="ancho amplio">
+    <h1>Las 59 predicciones</h1>
+    <p class="lead">Rendimiento estimado de las 59 parcelas del conjunto de predicción, en toneladas por hectárea (t/ha), con cuatro decimales. Elige una parcela para ver cómo se forma su estimación.</p>
+    <div class="botones">
+      <a class="boton" href="descargas/visionterradata_prediccion.csv" download>Descargar el archivo de entrega</a>
+      <a class="boton borde" href="descargas/tabla_anexos_predicciones.csv" download>Tabla para anexos</a>
+    </div>
+    <p class="nota">Los dos archivos son CSV (valores separados por comas) y se abren con cualquier hoja de cálculo. El archivo de entrega tiene las columnas del archivo de FIRA: ID_POLIGONO, AREA_HA, RENDIMIENTO_T_HA y CONJUNTO.</p>
+    <div class="filtros-linea">
+      <label>Buscar parcela<input id="p-buscar" type="search" placeholder="AGC_003" autocomplete="off"></label>
+      <label>Municipio<select id="p-mun"><option value="">Todos</option></select></label>
+      <span id="p-cuenta"></span>
+    </div>
+    <div class="dos-col">
+      <div class="tabla-wrap tabla-alta"><table class="tabla" id="t-pred">
+        <thead><tr><th><button type="button" data-orden="id">Parcela</button></th><th><button type="button" data-orden="municipio">Municipio</button></th><th class="num"><button type="button" data-orden="area_ha">Área (ha)</button></th><th class="num"><button type="button" data-orden="rend_pred">Estimado (t/ha)</button></th><th class="num">Promedio municipal</th><th class="num"><button type="button" data-orden="corr_temp">Corrección</button></th></tr></thead>
+        <tbody></tbody></table></div>
+      <aside class="detalle" id="p-detalle"><p class="nota">Elige una parcela de la tabla para ver su ficha.</p></aside>
+    </div>
+    <p class="nota">Área en hectáreas (ha). Estimado = promedio municipal + corrección por temperatura máxima.</p>
+    <h2>Promedio de las estimaciones por municipio</h2>
+    <div class="tabla-wrap"><table class="tabla" id="t-mun">
+      <thead><tr><th>Estado</th><th>Municipio</th><th class="num">Parcelas estimadas</th><th class="num">Media estimada (t/ha)</th><th class="num">Parcelas de entrenamiento</th><th class="num">Media observada (t/ha)</th></tr></thead>
+      <tbody></tbody></table></div>
+    <p class="nota">Media estimada: promedio de los valores de cuatro decimales de la tabla de arriba. Media observada: promedio del rendimiento que proporcionó FIRA en las parcelas de entrenamiento del municipio; es el punto de partida de cada estimación.</p>
+  </div>
+</section>
+
+<!-- ================= EL MODELO ================= -->
+<section class="vista" id="v-modelo" hidden>
+  <div class="ancho">
+    <h1>Cómo funciona el modelo</h1>
+    <p class="lead">Es un modelo sencillo: con una sola temporada de datos y 138 parcelas con rendimiento, fue el que menos se equivocó entre los 43 modelos que se probaron con las mismas pruebas.</p>
+    <h2>En pocas palabras</h2>
+    <ol class="pasos">
+      <li><b>Punto de partida: el promedio de su municipio.</b> Se toma el rendimiento promedio de las parcelas de entrenamiento del mismo municipio. Los municipios tienen rendimientos muy distintos entre sí, y esa diferencia es lo que más explica el rendimiento.</li>
+      <li><b>Corrección por temperatura máxima.</b> Se compara la temperatura máxima de cada mes, de abril a octubre de 2025, de la parcela contra el promedio de su municipio. Cada diferencia se multiplica por un coeficiente aprendido con una regresión ElasticNet.</li>
+      <li><b>Se aplica la mitad de esa corrección.</b> La estimación final es el promedio de dos modelos: el promedio municipal solo y el promedio municipal con la corrección completa. Eso equivale a sumar la mitad (½) de la corrección.</li>
+    </ol>
+    <h2>La fórmula</h2>
+    <div class="formula"><var>ŷ</var><sub><var>i</var></sub> = <var>ȳ</var><sub><var>m</var></sub> + ½ · Σ<sub><var>k</var></sub> <var>β</var><sub><var>k</var></sub> · ( <var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub> )</div>
+    <dl class="clave">
+      <dt>ŷᵢ</dt><dd>Rendimiento estimado de la parcela <i>i</i>, en t/ha (toneladas por hectárea).</dd>
+      <dt>ȳₘ</dt><dd>Rendimiento promedio de las parcelas de entrenamiento de su municipio <i>m</i>.</dd>
+      <dt>xᵢ,ₖ</dt><dd>Temperatura máxima promedio del mes <i>k</i> (abril a octubre de 2025) en la parcela, en °C (grados Celsius).</dd>
+      <dt>x̄ₘ,ₖ</dt><dd>Promedio de esa temperatura en las parcelas de entrenamiento del municipio.</dd>
+      <dt>βₖ</dt><dd>Coeficiente del mes <i>k</i>, en t/ha por °C (tabla de abajo).</dd>
+    </dl>
+
+    <h2>El peso de cada mes</h2>
+    <p>Dentro de un mismo municipio la temperatura máxima cambia muy poco de una parcela a otra: su variación típica va <span id="m-desv">…</span>. Por eso el efecto real de cada mes es pequeño, aunque el coeficiente por grado se vea grande.</p>
+    <div class="tabla-wrap"><table class="tabla" id="t-coef"><thead><tr><th>Mes</th><th class="num">Coeficiente β (t/ha por °C)</th><th class="num">Variación típica dentro del municipio (°C)</th><th class="num">Efecto de esa variación en la estimación (t/ha)</th></tr></thead><tbody></tbody></table></div>
+    <p class="nota">Efecto = ½ × coeficiente × variación típica (desviación estándar de las diferencias contra el promedio municipal, en las 138 parcelas de entrenamiento). Un coeficiente de 0 significa que ese mes no entra al modelo.</p>
+    <p class="alerta">Las temperaturas de los siete meses suben y bajan casi juntas, así que el signo de un mes aislado (como el positivo de mayo) no se lee solo: los meses se compensan entre sí y lo que cuenta es la suma. <span id="m-conjunto"></span></p>
+
+    <div class="caja ejecuta" id="ejecuta">
+      <h2 style="margin-top:4px">Ejecuta el modelo</h2>
+      <p>La página calcula aquí mismo, con la fórmula y los parámetros del modelo ya entrenado, el rendimiento de las 59 parcelas, y lo compara con el archivo de entrega (visionterradata_prediccion.csv). El entrenamiento completo se hace con el cuaderno en Google Colab (ver <a href="#codigo">Código</a>).</p>
+      <div class="botones"><button class="boton" id="b-ejecutar" type="button">Calcular las 59 estimaciones</button></div>
+      <div id="r-ejecutar" aria-live="polite"></div>
+      <h3 style="margin-top:18px">Paso a paso para una parcela</h3>
+      <p class="nota" style="margin-top:0">Elige una parcela. Puedes cambiar sus temperaturas para ver cómo responde el modelo; el botón "Volver a los valores reales" deshace los cambios.</p>
+      <div class="filtros-linea"><label>Parcela<select id="s-paso"></select></label></div>
+      <div id="r-paso"></div>
+    </div>
+
+    <h2>Cómo se entrenó</h2>
+    <p>El coeficiente de cada mes se aprendió con <b>ElasticNet</b>, una regresión lineal con penalización que deja en cero los meses que no aportan y reduce los demás. Antes de ajustar, a cada parcela se le resta el promedio de su municipio, tanto al rendimiento como a la temperatura, y las diferencias de temperatura se estandarizan. ElasticNet busca los coeficientes que minimizan:</p>
+    <div class="formula chica">(1 / 2<var>n</var>) · Σ<sub><var>i</var></sub> ( <var>r</var><sub><var>i</var></sub> − Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub> <var>z</var><sub><var>i,k</var></sub> )² + <var>α</var> · <var>ρ</var> · Σ<sub><var>k</var></sub> |<var>b</var><sub><var>k</var></sub>| + (<var>α</var> (1 − <var>ρ</var>) / 2) · Σ<sub><var>k</var></sub> <var>b</var><sub><var>k</var></sub>²</div>
+    <dl class="clave">
+      <dt>rᵢ</dt><dd>Rendimiento de la parcela menos el promedio de su municipio.</dd>
+      <dt>zᵢ,ₖ</dt><dd>Diferencia de temperatura del mes <i>k</i> contra su municipio, dividida entre su desviación estándar. El coeficiente por grado es βₖ = bₖ ÷ desviación estándar.</dd>
+      <dt>α, ρ</dt><dd>Fuerza de la penalización y mezcla entre sus dos partes. Se eligieron con validación interna en 5 partes, solo con las 138 parcelas, entre 3 mezclas (0.1, 0.5 y 0.9) y 40 valores de α: <span id="m-params">…</span>.</dd>
+    </dl>
+
+    <h2>Cómo se validó y se eligió</h2>
+    <ul class="limpia">
+      <li><b>Mismas pruebas para todos.</b> Los 43 modelos se evaluaron con los mismos repartos. En cada reparto, las 138 parcelas se dividen en 5 partes: se entrena con 4 y se estima la quinta, hasta cubrirlas todas. Así cada parcela se estima sin haberse usado para entrenar.</li>
+      <li><b>20 repartos.</b> Los repartos 42 a 51 sirven para comparar y elegir; los repartos 52 a 61, solo para confirmar.</li>
+      <li><b>Regla fijada antes de correr.</b> Gana el de menor RMSE (raíz del error cuadrático medio). Si varios empatan (la diferencia con el mejor es menor que lo que esa diferencia varía de un reparto a otro), gana el de menor MAE (error absoluto medio). Si en MAE también empatan, gana el de menor variación del RMSE entre repartos.</li>
+      <li><b>Entrenamiento final.</b> El modelo ganador se entrenó una última vez con las 138 parcelas y estimó las 59.</li>
+    </ul>
+    <div class="formula chica">RMSE = √( (1/<var>n</var>) Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ) &nbsp;·&nbsp; MAE = (1/<var>n</var>) Σ |<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>| &nbsp;·&nbsp; R² = 1 − Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ⁄ Σ (<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>)²</div>
+    <p class="nota">R² es el coeficiente de determinación: la parte de la variación del rendimiento que explica el modelo.</p>
+
+    <h2>Preguntas guía del reto</h2>
+    <div class="pregunta"><h3>1. ¿Qué índice es más importante en la predicción?</h3><p>Con nuestros datos, <b>ningún índice de satélite mejoró la predicción por encima del promedio municipal</b>. Por ejemplo, al corregir el promedio municipal con ElasticNet y las 22 variables candidatas, que incluyen derivadas del NDVI (índice de vegetación de diferencia normalizada) y del EVI (índice de vegetación mejorado) de Planet y de Sentinel-2, el RMSE fue de 0.51341 t/ha, contra 0.51260 del promedio municipal solo.</p></div>
+    <div class="pregunta"><h3>2. ¿Qué variable climática tiene mayor peso?</h3><p>La <b>temperatura máxima</b>. Con la misma forma de modelo (promedio municipal + ½ corrección), la temperatura máxima mensual tuvo el menor error de validación: RMSE de 0.49479 t/ha, contra 0.49785 con temperatura máxima y mínima, 0.50393 con todo el clima mensual, 0.50650 con temperatura mínima y 0.51436 con lluvia. En el modelo, los meses con más peso son mayo, abril y octubre, pero como las temperaturas de los meses están muy relacionadas, conviene leerlo como un solo efecto de la temperatura de la temporada.</p></div>
+    <div class="pregunta"><h3>3. ¿Qué combinación de variables funciona mejor?</h3><p>El <b>promedio del rendimiento de cada municipio más la mitad de una corrección por la temperatura máxima de abril a octubre</b>. Fue el de menor error entre los 43 modelos (RMSE de 0.49479 t/ha contra 0.51260 del promedio municipal) y tuvo menos error que el promedio municipal en los 10 repartos de comparación y en los 10 de confirmación. Agregarle la temperatura mínima, la lluvia, la topografía o índices de satélite no lo mejoró.</p></div>
+
+    <h2>Limitaciones</h2>
+    <ul class="limpia">
+      <li>Hay una sola temporada (2025): el modelo describe ese ciclo y no se ha probado en otros años.</li>
+      <li>El clima viene en celdas de unos 5 km (0.05°): en cada mes, las 197 parcelas comparten solo 53 valores distintos de temperatura máxima. Describe el contexto regional, no cada predio.</li>
+      <li>La corrección por temperatura es pequeña (<span id="m-rango-corr">…</span>): las estimaciones quedan cerca del promedio de su municipio y no reproducen los rendimientos extremos.</li>
+      <li>Nanacamilpa de Mariano Arista tiene una sola parcela de entrenamiento, así que el punto de partida de su parcela a estimar es el rendimiento de esa única parcela (2.50 t/ha).</li>
+      <li>El rendimiento no viene con el mismo detalle en todos los municipios: en Calpulalpan, las 30 parcelas de entrenamiento solo tienen tres valores distintos (2.5, 3.0 y 3.5 t/ha).</li>
+      <li>Los coeficientes son asociaciones observadas, no efectos causales de la temperatura.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= RESULTADOS ================= -->
+<section class="vista" id="v-resultados" hidden>
+  <div class="ancho">
+    <h1>Resultados de la validación</h1>
+    <p class="lead">Errores en parcelas que el modelo no vio al entrenar, en toneladas por hectárea (t/ha). Promedio de los repartos 42 a 51, con 5 partes por reparto.</p>
+    <div class="tiles r">
+      <div class="tile"><div class="et">RMSE</div><div class="va">0.4948</div><div class="su">raíz del error cuadrático medio · promedio municipal: 0.5126</div></div>
+      <div class="tile"><div class="et">MAE</div><div class="va">0.3319</div><div class="su">error absoluto medio · promedio municipal: 0.3375</div></div>
+      <div class="tile"><div class="et">R²</div><div class="va">0.6596</div><div class="su">coeficiente de determinación · promedio municipal: 0.6346</div></div>
+      <div class="tile"><div class="et">Confirmación</div><div class="va">0.4933</div><div class="su">RMSE en los repartos 52 a 61 · promedio municipal: 0.5128</div></div>
+      <div class="tile"><div class="et">Remuestreo</div><div class="va">99.1 %</div><div class="su">de 2,000 grupos de parcelas al azar con menos error que el promedio municipal; mejora del RMSE de 0.0023 a 0.0387 (intervalo de 95 %)</div></div>
+    </div>
+    <h2>Comparación de los modelos</h2>
+    <p>RMSE de los modelos con menor error, hasta llegar al promedio municipal, que es la referencia. Pasa el cursor o el foco sobre una fila para ver sus cifras; la tabla completa de los 43 está abajo.</p>
+    <div class="puntos" id="g-modelos"></div>
+    <details><summary>Ver la tabla de los 43 modelos</summary><div class="tabla-wrap" style="margin-top:8px;max-height:520px"><table class="tabla chica" id="t-modelos"><thead><tr><th class="num">Lugar</th><th>Modelo</th><th class="num">RMSE</th><th class="num">MAE</th><th class="num">R²</th><th class="num">Gana al promedio municipal (42–51)</th><th class="num">RMSE confirmación (52–61)</th></tr></thead><tbody></tbody></table></div></details>
+    <p class="nota">Fuente: comparacion_modelos_final.csv, de la corrida del cuaderno en Google Colab. Los modelos con la red LSTM (memoria de corto y largo plazo), Random Forest (bosques aleatorios), XGBoost (potenciación extrema del gradiente) o vecinos parecidos pueden dar cifras ligeramente distintas en otra computadora; el ganador y los primeros 14 lugares dan exactamente lo mismo.</p>
+    <h2>Gráficas del modelo ganador</h2>
+    <div class="figuras">
+      <figure class="figura"><img src="img/g2_reales_vs_predichos.png" alt="Gráfica de dispersión del rendimiento real contra el predicho en parcelas no vistas, reparto 42, por municipio" loading="lazy"><figcaption>Reales contra predichos en parcelas no vistas (reparto 42). La franja gris marca ± 0.5 t/ha.</figcaption></figure>
+      <figure class="figura"><img src="img/g3_errores.png" alt="Diagramas de caja del error por municipio e histograma del error absoluto, reparto 42" loading="lazy"><figcaption>Dónde y cuánto se equivoca: error por municipio y distribución del error absoluto (reparto 42).</figcaption></figure>
+      <figure class="figura"><img src="img/g4_predicciones_59.png" alt="Diagramas de caja del rendimiento de entrenamiento por municipio con las 59 predicciones como puntos rojos" loading="lazy"><figcaption>Las 59 predicciones (puntos rojos) frente al rendimiento observado de su municipio (cajas).</figcaption></figure>
+      <figure class="figura"><img src="img/g1_mapa_calor.png" alt="Mapas de calor de la correlación entre el rendimiento y la temperatura máxima de cada mes, con todas las parcelas y dentro de cada municipio" loading="lazy"><figcaption>Correlaciones entre el rendimiento y la temperatura máxima de cada mes, y de los meses entre sí: con todas las parcelas juntas y dentro de cada municipio (138 parcelas).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CÓDIGO ================= -->
+<section class="vista" id="v-codigo" hidden>
+  <div class="ancho">
+    <h1>Código del modelo</h1>
+    <p class="lead">Todo el proceso está en un solo cuaderno de Python: carga y revisión de los datos, variables, comparación de 43 modelos, selección automática del ganador, entrenamiento final y las 59 predicciones. La página no ejecuta el cuaderno: se ejecuta en Google Colab.</p>
+    <div class="botones">
+      <a class="boton" id="b-colab" href="#" target="_blank" rel="noopener">Abrir en Google Colab</a>
+      <a class="boton borde" href="codigo/AgroCebada_Cuaderno_Final.ipynb" download>Descargar el cuaderno (.ipynb)</a>
+      <a class="boton borde" href="#datos">Archivos de datos</a>
+    </div>
+    <p class="nota">Huella md5 (algoritmo de resumen de mensajes 5) del cuaderno: <span class="huella" id="c-huella">…</span></p>
+    <h2>Guía para ejecutarlo</h2>
+    <ol class="pasos">
+      <li><b>Descarga los dos archivos de datos</b> de la sección <a href="#datos">Datos</a>: <code>todo__basico_terminado.csv</code> e <code>ID_area_rendimiento_70_30_Reto_AgroCebada.csv</code>. No los abras ni los guardes en Excel antes de usarlos.</li>
+      <li><b>Abre el cuaderno en Google Colab</b> con el botón de arriba y elige "Entorno de ejecución" → "Ejecutar todo".</li>
+      <li><b>Sube los dos archivos juntos</b> cuando aparezca "Elegir archivos" (sección 2). El cuaderno revisa que sean los correctos.</li>
+      <li><b>Espera a que termine.</b> La comparación de los 43 modelos (sección 7) tardó 35.5 minutos en Colab; va escribiendo "Reparto N listo".</li>
+      <li><b>Revisa la huella del resultado.</b> Al final de la sección 12, la huella md5 del archivo de entrega debe ser <span class="huella">aaac4544eef073e3c9be958b250f7ad1</span>: así se comprueba que el resultado es idéntico al entregado.</li>
+      <li><b>Descarga los resultados.</b> La sección 13 descarga las gráficas, la tabla de modelos y los archivos de predicciones.</li>
+    </ol>
+    <h2>Qué hace cada sección</h2>
+    <p class="nota">Abre una sección para ver su explicación y su código, tal como están en el cuaderno.</p>
+    <div id="c-secciones"><p class="nota">Cargando el cuaderno…</p></div>
+  </div>
+</section>
+
+<!-- ================= DATOS ================= -->
+<section class="vista" id="v-datos" hidden>
+  <div class="ancho">
+    <h1>Datos para ejecutar el código</h1>
+    <p class="lead">Para reproducir los resultados solo se necesitan el cuaderno y dos archivos: la tabla maestra y el archivo original de FIRA. Aquí está cada archivo, con lo que contiene, para qué sirve en el modelo y cómo se obtuvo.</p>
+    <div class="botones"><a class="boton" href="descargas/Guia_de_archivos_AgroCebada.pdf" download>Descargar la guía de archivos (PDF, formato de documento portátil)</a></div>
+    <div id="d-grupos"><p class="nota">Cargando la lista de archivos…</p></div>
+    <p class="nota">Los datos originales completos (capa de parcelas, rásteres de clima y relieve, y conjuntos de índices satelitales) los proporcionó FIRA a los equipos del reto; con ellos se armó la tabla maestra.</p>
+  </div>
+</section>
+
+<!-- ================= DOCUMENTOS ================= -->
+<section class="vista" id="v-documentos" hidden>
+  <div class="ancho">
+    <h1>Documentos de la propuesta</h1>
+    <p class="lead">Informe, anexos, bibliografía y video del equipo Visión Terra Data para el Reto AgroCebada FIRA 2026.</p>
+    <div class="docs" id="docs-lista"></div>
+    <p class="nota" id="docs-vacio" hidden>Aquí aparecerán el informe, los anexos, la bibliografía y el video de la entrega.</p>
+    <h2>Equipo</h2>
+    <p><b>Visión Terra Data</b></p>
+    <ul class="limpia" id="equipo"></ul>
+    <p class="pie">Los datos de las parcelas, los rendimientos, el clima, el relieve y los índices satelitales son de FIRA (Fideicomisos Instituidos en Relación con la Agricultura), Reto AgroCebada 2026. El rendimiento real de las 59 parcelas de predicción lo resguarda FIRA para la evaluación.</p>
+  </div>
+</section>
+</main>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 "use strict";
-const $=id=>document.getElementById(id),meses=[['abr','Abril'],['may','Mayo'],['jun','Junio'],['jul','Julio'],['ago','Agosto'],['sep','Septiembre'],['oct','Octubre']];
-let mapa=L.map('mapa').setView([19.5,-98.5],8),capa=L.layerGroup().addTo(mapa),datos=[],listos=false,ref=new Map();
-mapa.zoomControl.setPosition('topright');
-let filtros={estado:'',municipio:'',conjunto:''};
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa);
-const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ver=x=>x===null||x===undefined||x===''?'sin dato':String(x);
-function fijo(x){if(x==null)return 'sin dato';const t=String(x),m=/^(-?\d+)(?:\.(\d+))?$/.exec(t);return m&&(!m[2]||m[2].length<=4)?m[1]+'.'+(m[2]||'').padEnd(4,'0'):t}
-function ficha(p){let h='<div class="ficha"><h3>'+esc(p.id)+'</h3><p><b>Municipio:</b> '+esc(p.municipio)+'<br><b>Estado:</b> '+esc(p.estado)+'<br><b>Conjunto:</b> '+esc(p.conjunto)+'<br><b>Área:</b> '+esc(ver(p.area_ha))+' ha</p>';
- if(p.conjunto==='ENTRENAMIENTO')h+='<p><b>Rendimiento observado:</b> '+esc(ver(p.rend_obs))+' t/ha (dato de FIRA)<br><b>Promedio de su municipio:</b> '+esc(ver(p.prom_mun))+' t/ha</p>';
- else h+='<p><b>Rendimiento estimado:</b> '+esc(fijo(p.rend_pred))+' t/ha = promedio de su municipio '+esc(fijo(p.prom_mun))+' + corrección por temperatura '+esc(fijo(p.corr_temp))+'</p><p class="nota">El rendimiento real de esta parcela lo resguarda FIRA para la evaluación.</p>';
- h+='<h4>Temperatura máxima mensual de 2025 (°C)</h4><table><tr><th>Mes</th><th>°C</th></tr>';for(const [k,m] of meses)h+='<tr><td>'+m+'</td><td>'+esc(ver(p['tmax_'+k]))+'</td></tr>';return h+'</table></div>'}
-function mostrar(p){$('panel').innerHTML='<button id="x" aria-label="Cerrar">×</button>'+ficha(p);$('panel').hidden=false;$('x').onclick=()=>{$('panel').hidden=true;mapa.closePopup()}}
-function municipios(){const arr=[...new Set(datos.filter(f=>!filtros.estado||f.properties.estado===filtros.estado).map(f=>f.properties.municipio))].sort((a,b)=>a.localeCompare(b,'es'));const elegido=filtros.municipio;$('municipio').replaceChildren(new Option('Todos',''),...arr.map(x=>new Option(x,x)));filtros.municipio=arr.includes(elegido)?elegido:'';$('municipio').value=filtros.municipio}
-function dibujar(centrar=true){capa.clearLayers();ref.clear();$('panel').hidden=true;const bounds=L.latLngBounds();let n=0;
- for(const f of datos){const p=f.properties;if(filtros.estado&&p.estado!==filtros.estado||filtros.municipio&&p.municipio!==filtros.municipio||filtros.conjunto&&p.conjunto!==filtros.conjunto)continue;
-  const color=p.conjunto==='ENTRENAMIENTO'?'#2B6629':'#3D3FA6';const poly=L.geoJSON(f,{style:{color,fillColor:color,fillOpacity:.25,weight:2}}),dot=L.circleMarker([p.lat,p.lon],{radius:5,color:'#fff',weight:1,fillColor:color,fillOpacity:1});
-  poly.bindPopup(()=>ficha(p));dot.bindPopup(()=>ficha(p));poly.on('click',()=>mostrar(p));dot.on('click',()=>mostrar(p));capa.addLayer(poly);capa.addLayer(dot);ref.set(p.id,{poly,dot});bounds.extend(poly.getBounds());n++}
- $('contador').textContent='Mostrando '+n+' de 197 parcelas';if(centrar&&bounds.isValid())mapa.fitBounds(bounds,{padding:[30,30],maxZoom:15})}
-function buscar(){const id=$('id').value.trim().toUpperCase();if(!listos)return;const f=datos.find(f=>f.properties.id.toUpperCase()===id);if(!f){$('aviso').hidden=false;$('aviso').textContent='No se encontró '+id;return}filtros={estado:'',municipio:'',conjunto:''};$('estado').value='';$('conjunto').value='';municipios();dibujar(false);$('aviso').hidden=true;let r=ref.get(f.properties.id);mapa.fitBounds(r.poly.getBounds(),{padding:[45,45],maxZoom:17});r.dot.openPopup();mostrar(f.properties)}
-function verificar(j){if(j.type!=='FeatureCollection'||!Array.isArray(j.features))throw Error('GeoJSON inválido');const a=j.features;if(a.length!==197||a.filter(f=>f.properties?.conjunto==='ENTRENAMIENTO').length!==138||a.filter(f=>f.properties?.conjunto==='PREDICCION').length!==59)throw Error('Conteos distintos de 197/138/59');
- const ids=new Set(),estados=new Set(),munis=new Set();for(const f of a){let p=f.properties;if(!p||typeof p.id!=='string'||ids.has(p.id))throw Error('ID ausente o repetido');ids.add(p.id);if(!['Hidalgo','Puebla','Tlaxcala'].includes(p.estado)||!p.municipio)throw Error('Estado o municipio inválido');estados.add(p.estado);munis.add(p.estado+'|'+p.municipio);if(p.estado==='Puebla'&&p.municipio!=='Chignahuapan')throw Error('Municipio inesperado en Puebla');if(!['Polygon','MultiPolygon'].includes(f.geometry?.type))throw Error('Polígono no válido');if(typeof p.lat!=='number'||typeof p.lon!=='number')throw Error('Centro ausente');if(p.conjunto==='ENTRENAMIENTO'&&(p.rend_obs==null||p.rend_pred!==null)||p.conjunto==='PREDICCION'&&(p.rend_obs!==null||p.rend_pred==null))throw Error('Rendimiento incompatible')}
- if(estados.size!==3||munis.size!==9)throw Error('Número de estados o municipios incorrecto');for(const [id,num] of [['AGC_003','3.0425'],['AGC_120','2.5020'],['AGC_130','4.6384']]){const p=a.find(f=>f.properties.id===id)?.properties;if(!p||fijo(p.rend_pred)!==num)throw Error('Valor de comprobación incorrecto '+id)}return a}
-async function cargar(){try{const r=await fetch('data/parcelas_agrocebada.geojson',{cache:'no-store'});if(r.status===404)return;if(!r.ok)throw Error('HTTP '+r.status);datos=verificar(await r.json());listos=true;municipios();dibujar();$('aviso').hidden=true;$('descargar').hidden=false;$('dl-info').textContent='Archivo verificado: 197 parcelas.'}catch(e){console.error(e);$('aviso').textContent='No se pudieron mostrar datos verificados: '+e.message}}
-$('estado').onchange=e=>{filtros.estado=e.target.value;filtros.municipio='';municipios();dibujar()};$('municipio').onchange=e=>{filtros.municipio=e.target.value;dibujar()};$('conjunto').onchange=e=>{filtros.conjunto=e.target.value;dibujar()};$('buscar').onclick=buscar;$('id').onkeydown=e=>{if(e.key==='Enter')buscar()};$('limpiar').onclick=()=>{filtros={estado:'',municipio:'',conjunto:''};$('estado').value='';$('conjunto').value='';$('id').value='';municipios();dibujar();$('aviso').hidden=listos};
-function ir(p){for(const x of ['inicio','descarga','modelo'])$('p-'+x).hidden=x!==p;if(p==='mapa')setTimeout(()=>{mapa.invalidateSize();acomodarZoom()},10)}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-ir]');if(b)ir(b.dataset.ir);if(e.target.closest('[data-dl="plantilla"]'))$('md-msg').textContent='Plantilla pendiente de datos reales; no se descargan identificadores simulados.'});
-/* Mantener el zoom separado del Inicio, filtros, ficha y leyenda también en móvil. */
-function acomodarZoom(){
- const control=mapa.zoomControl.getContainer(),anclaje=control.parentElement;
- if(!anclaje)return;
- const contenedor=$('mapa').getBoundingClientRect();
- const barra=document.querySelector('.arriba').getBoundingClientRect();
- const choca=(a,b)=>a.left<b.right+8&&a.right>b.left-8&&a.top<b.bottom+8&&a.bottom>b.top-8;
- anclaje.style.top='0px';
- control.style.visibility='visible';
- let r=control.getBoundingClientRect();
- if(choca(r,barra)){
-  anclaje.style.top=Math.ceil(barra.bottom-contenedor.top+12)+'px';
-  r=control.getBoundingClientRect();
- }
- const panel=$('panel'),leyenda=document.querySelector('.leyenda');
- if(r.bottom>contenedor.bottom-8||choca(r,leyenda.getBoundingClientRect())||(!panel.hidden&&choca(r,panel.getBoundingClientRect()))){
-  control.style.visibility='hidden';
- }
+/* ===== Configuración que el equipo puede editar ===== */
+const DOCUMENTOS = [                       // cada documento aparece solo si el archivo existe en la carpeta docs/
+  {nombre: "Informe", archivo: "docs/Informe_AgroCebada.pdf", texto: "Reporte técnico de la propuesta."},
+  {nombre: "Anexos", archivo: "docs/Anexos_AgroCebada.pdf", texto: "Tablas, figuras, predicciones y aportaciones del equipo."},
+  {nombre: "Bibliografía", archivo: "docs/Bibliografia_AgroCebada.pdf", texto: "Fuentes y relación de prompts de inteligencia artificial."}
+];
+const VIDEO = "";                          // enlace al video (YouTube, Drive, etc.); vacío = no se muestra
+const INTEGRANTES = [];                    // nombres del equipo, por ejemplo ["Nombre Apellido", "Nombre Apellido"]; vacío = no se muestran
+const COLAB = "https://colab.research.google.com/github/felipetecuanial-a11y/agrocebada/blob/main/codigo/AgroCebada_Cuaderno_Final.ipynb";
+const CSV_ENTREGA = "descargas/visionterradata_prediccion.csv";
+
+/* ===== Utilidades ===== */
+const $ = id => document.getElementById(id);
+const MESES = [["abr", "Abril"], ["may", "Mayo"], ["jun", "Junio"], ["jul", "Julio"], ["ago", "Agosto"], ["sep", "Septiembre"], ["oct", "Octubre"]];
+const COLOR = {ent: "#2B6629", pred: "#3D3FA6", sube: "#2a78d6", baja: "#e34948", sel: "#D9A32B"};
+const RAMPA = ["#94C47C", "#6BA956", "#478B37", "#2B6A22", "#174812"];   // rendimiento, de bajo a alto (paleta validada)
+const CORTES = [3.0, 3.5, 4.0, 4.5];
+const esc = x => String(x).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const nulo = x => x === null || x === undefined || x === "";
+const f2 = x => nulo(x) ? "sin dato" : Number(x).toFixed(2);
+const f3 = x => nulo(x) ? "sin dato" : Number(x).toFixed(3);
+const f4 = x => nulo(x) ? "sin dato" : Number(x).toFixed(4);
+function conSigno(x, d = 4) { const v = Number(x); if (Math.abs(v) < 0.5 * Math.pow(10, -d)) return (0).toFixed(d); return (v > 0 ? "+" : "−") + Math.abs(v).toFixed(d); }
+const conjunto = c => c === "PREDICCION" ? "Predicción" : "Entrenamiento";
+const tam = b => b >= 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1e3)) + " KB";
+async function leer(url) { const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw Error(url + ": HTTP " + r.status); return r.json(); }
+
+const D = {parcelas: [], porId: new Map(), modelo: null, maxAporte: 0.2, rango: null, encuadrado: false};
+
+/* ===== Navegación entre secciones ===== */
+const VISTAS = ["inicio", "mapa", "predicciones", "modelo", "resultados", "codigo", "datos", "documentos"];
+function altoBarra() { document.documentElement.style.setProperty("--barra", $("barra").offsetHeight + "px"); }
+function ruta() {
+  const partes = decodeURIComponent(location.hash.replace("#", "")).split("/");
+  const v = VISTAS.includes(partes[0]) ? partes[0] : "inicio";
+  for (const x of VISTAS) $("v-" + x).hidden = x !== v;
+  document.querySelectorAll(".menu a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+  document.body.style.overflow = v === "mapa" ? "hidden" : "";
+  ocultarTip();
+  if (v === "mapa") {
+    altoBarra();
+    setTimeout(() => {
+      mapa.invalidateSize();
+      if (!D.parcelas.length) return;                 // los datos todavía se están cargando
+      if (!D.encuadrado) encuadrar();
+      if (partes[1]) mostrarEnMapa(partes[1]);
+    }, 60);
+  } else window.scrollTo(0, 0);
 }
-window.addEventListener('resize',()=>requestAnimationFrame(acomodarZoom));
-new MutationObserver(()=>requestAnimationFrame(acomodarZoom)).observe($('panel'),{attributes:true,attributeFilter:['hidden']});
-requestAnimationFrame(acomodarZoom);
-cargar();
+window.addEventListener("hashchange", ruta);
+window.addEventListener("resize", () => { altoBarra(); if (!$("v-mapa").hidden) mapa.invalidateSize(); });
+
+/* ===== Tooltip: un solo elemento para todas las gráficas ===== */
+const tip = $("tip");
+function mostrarTip(html, x, y) { tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, x + 14)) + "px"; tip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px"; }
+function ocultarTip() { tip.hidden = true; }
+function tipEn(el, html) {
+  el.addEventListener("pointermove", e => mostrarTip(html(), e.clientX, e.clientY));
+  el.addEventListener("pointerleave", ocultarTip);
+  el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); mostrarTip(html(), r.left + r.width / 2, r.top); });
+  el.addEventListener("blur", ocultarTip);
+}
+window.addEventListener("scroll", ocultarTip, {passive: true});
+
+/* ===== Revisión del archivo de parcelas ===== */
+function verificar(j) {
+  if (j.type !== "FeatureCollection" || !Array.isArray(j.features)) throw Error("el archivo de parcelas no es válido");
+  const a = j.features, n = c => a.filter(f => f.properties.conjunto === c).length;
+  if (a.length !== 197 || n("ENTRENAMIENTO") !== 138 || n("PREDICCION") !== 59) throw Error("no son 197 parcelas (138 y 59)");
+  if (new Set(a.map(f => f.properties.id)).size !== 197) throw Error("hay identificadores repetidos");
+  for (const f of a) { const p = f.properties; if (p.conjunto === "PREDICCION" ? nulo(p.rend_pred) : nulo(p.rend_obs)) throw Error("falta el rendimiento de " + p.id); }
+  return a;
+}
+
+/* ===== El modelo: fórmula con los parámetros del modelo entrenado (data/modelo.json) ===== */
+function aplicar(municipio, tmax) {
+  const M = D.modelo, mu = M.municipios[municipio];
+  const aportes = M.coef_t_ha_por_grado.map((b, k) => M.peso_correccion * b * (tmax[k] - mu.tmax_promedio[k]));
+  const correccion = aportes.reduce((s, v) => s + v, 0);
+  return {municipio, base: mu.rend_promedio, tmax, tmaxMun: mu.tmax_promedio, aportes, correccion, estimado: mu.rend_promedio + correccion};
+}
+function calcular(id) { const p = D.modelo && D.modelo.parcelas_prediccion[id]; return p ? Object.assign({id}, aplicar(p.municipio, p.tmax)) : null; }
+
+/* ===== Gráfica de aportes por mes (barras divergentes) ===== */
+function graficaAportes(r) {
+  const W = 360, fila = 26, top = 4, sep = 12, yTot = top + fila * 7 + sep, H = yTot + fila + 22;
+  const x0 = 82, x1 = W - 10, xc = (x0 + x1) / 2, m = D.maxAporte, px = (x1 - xc) / m, alto = 14;
+  const marcas = [-m, -m / 2, 0, m / 2, m];
+  let s = `<svg class="grafica" viewBox="0 0 ${W} ${H}" role="img" aria-label="Aporte de la temperatura máxima de cada mes a la estimación, en toneladas por hectárea">`;
+  for (const t of marcas) { const x = xc + t * px; s += `<line x1="${x}" x2="${x}" y1="${top}" y2="${yTot + fila}" stroke="${t === 0 ? "#B4AE9A" : "#EEECE4"}" stroke-width="1"/>`; }
+  const fila_ = (v, y, etiqueta, clase, k) => {
+    const cy = y + fila / 2, w = Math.min(Math.abs(v) * px, xc - x0), yb = cy - alto / 2, col = v >= 0 ? COLOR.sube : COLOR.baja;
+    let barra = "";
+    if (w >= 0.5) {
+      const rr = Math.min(4, w);
+      barra = v >= 0
+        ? `<path class="barra-g" fill="${col}" d="M${xc},${yb} h${w - rr} a${rr},${rr} 0 0 1 ${rr},${rr} v${alto - 2 * rr} a${rr},${rr} 0 0 1 -${rr},${rr} h-${w - rr} z"/>`
+        : `<path class="barra-g" fill="${col}" d="M${xc},${yb} h-${w - rr} a${rr},${rr} 0 0 0 -${rr},${rr} v${alto - 2 * rr} a${rr},${rr} 0 0 0 ${rr},${rr} h${w - rr} z"/>`;
+    }
+    return `<g class="fila-g" tabindex="0" data-k="${k}"><rect class="hit" x="1" y="${y}" width="${W - 2}" height="${fila}" rx="4"/>${barra}<text class="lbl ${clase}" x="4" y="${cy + 4}">${etiqueta}</text>${w < 0.5 ? `<text x="${xc + 6}" y="${cy + 4}">0</text>` : ""}</g>`;
+  };
+  r.aportes.forEach((v, k) => s += fila_(v, top + k * fila, MESES[k][1], "", k));
+  s += `<line x1="0" x2="${W}" y1="${yTot - sep / 2}" y2="${yTot - sep / 2}" stroke="#D6D3C8"/>`;
+  s += fila_(r.correccion, yTot, "Total", "tot", 7);
+  marcas.forEach((t, i) => s += `<text x="${xc + t * px}" y="${yTot + fila + 16}" text-anchor="${i === 0 ? "start" : i === 4 ? "end" : "middle"}">${t === 0 ? "0" : conSigno(t, 2)}</text>`);
+  return s + `</svg>`;
+}
+function activarGrafica(cont, r) {
+  cont.querySelectorAll(".fila-g").forEach(g => {
+    const k = +g.dataset.k;
+    tipEn(g, () => k === 7
+      ? `<b>${conSigno(r.correccion)} t/ha</b><br>Corrección total: suma de los siete meses<br><span class="s">Estimación: ${r.estimado.toFixed(4)} t/ha</span>`
+      : `<b>${conSigno(r.aportes[k])} t/ha</b><br>${MESES[k][1]}<br><span class="s">Temperatura máxima: ${f2(r.tmax[k])} °C · su municipio: ${f2(r.tmaxMun[k])} °C</span>`);
+  });
+}
+
+/* ===== Ficha de una parcela (mapa y tabla de predicciones) ===== */
+function ficha(p) {
+  let h = `<div class="ficha"><div class="ficha-cab"><h3>${esc(p.id)}</h3><span class="etq ${p.conjunto === "PREDICCION" ? "pred" : "ent"}">${conjunto(p.conjunto)}</span></div>`;
+  h += `<dl class="datos"><dt>Municipio</dt><dd>${esc(p.municipio)}</dd><dt>Estado</dt><dd>${esc(p.estado)}</dd><dt>Área</dt><dd>${f2(p.area_ha)} ha (hectáreas)</dd></dl>`;
+  if (p.conjunto === "PREDICCION") {
+    const corr = Number(p.corr_temp);
+    h += `<div class="resultado"><span>Rendimiento estimado</span><b>${f4(p.rend_pred)} t/ha</b><p class="suma">= promedio de su municipio <b>${f4(p.prom_mun)}</b> ${corr < 0 ? "−" : "+"} corrección por temperatura <b>${Math.abs(corr).toFixed(4)}</b></p></div>`;
+    const r = calcular(p.id);
+    if (r) {
+      h += `<h4>De dónde sale la corrección</h4><p class="nota" style="margin:0">Aporte de la temperatura máxima de cada mes, en t/ha (toneladas por hectárea). Los meses se compensan entre sí; lo que cuenta es el total.</p>`;
+      h += `<div class="leyenda-g"><span><i style="background:${COLOR.sube}"></i>Sube la estimación</span><span><i style="background:${COLOR.baja}"></i>Baja la estimación</span></div>`;
+      h += `<div class="g-aportes">${graficaAportes(r)}</div>`;
+      h += `<details><summary>Ver la tabla</summary><div class="tabla-wrap"><table class="tabla chica"><thead><tr><th>Mes</th><th class="num">Parcela (°C)</th><th class="num">Su municipio (°C)</th><th class="num">Diferencia (°C)</th><th class="num">Aporte (t/ha)</th></tr></thead><tbody>`;
+      r.aportes.forEach((v, k) => h += `<tr><td>${MESES[k][1]}</td><td class="num">${f3(r.tmax[k])}</td><td class="num">${f3(r.tmaxMun[k])}</td><td class="num">${conSigno(r.tmax[k] - r.tmaxMun[k], 3)}</td><td class="num">${conSigno(v)}</td></tr>`);
+      h += `<tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${conSigno(r.correccion)}</td></tr></tbody></table></div><p class="nota">Por redondeo, la suma de los aportes de la tabla puede diferir en 0.0001 del total.</p></details>`;
+    }
+    h += `<p class="nota">El rendimiento real de esta parcela lo resguarda FIRA para la evaluación.</p>`;
+  } else {
+    h += `<div class="resultado"><span>Rendimiento observado (dato de FIRA)</span><b>${f2(p.rend_obs)} t/ha</b><p class="suma">Promedio de su municipio: <b>${f4(p.prom_mun)}</b> t/ha</p></div>`;
+    h += `<h4>Temperatura máxima mensual de 2025</h4><div class="tabla-wrap"><table class="tabla chica"><thead><tr><th>Mes</th><th class="num">°C (grados Celsius)</th></tr></thead><tbody>`;
+    MESES.forEach(([k, m]) => h += `<tr><td>${m}</td><td class="num">${f2(p["tmax_" + k])}</td></tr>`);
+    h += `</tbody></table></div><p class="nota">Las parcelas de entrenamiento sirvieron para aprender el modelo.</p>`;
+  }
+  return h + `</div>`;
+}
+function pintarFicha(cont, p) {
+  cont.innerHTML = ficha(p);
+  const r = p.conjunto === "PREDICCION" ? calcular(p.id) : null, g = cont.querySelector(".g-aportes");
+  if (r && g) activarGrafica(g, r);
+}
+
+/* ===== Mapa ===== */
+const mapa = L.map("mapa", {zoomControl: false, zoomSnap: 0.5}).setView([19.75, -98.42], 10);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(mapa);
+L.control.zoom({position: "bottomright", zoomInTitle: "Acercar", zoomOutTitle: "Alejar"}).addTo(mapa);
+const controlLeyenda = L.control({position: "bottomright"});
+controlLeyenda.onAdd = () => { const d = $("leyenda"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d); return d; };
+controlLeyenda.addTo(mapa);
+const capaPol = L.layerGroup().addTo(mapa), capaPun = L.layerGroup().addTo(mapa), capas = new Map();
+const filtros = {estado: "", municipio: "", conjunto: ""};
+let modoColor = "conjunto", seleccion = null;
+function claseRend(v) { let i = 0; while (i < CORTES.length && v >= CORTES[i]) i++; return i; }
+function estilo(p) {
+  const borde = p.conjunto === "PREDICCION" ? COLOR.pred : COLOR.ent;
+  if (modoColor === "rend") return {color: borde, weight: 2.5, fillColor: RAMPA[claseRend(p.conjunto === "PREDICCION" ? p.rend_pred : p.rend_obs)], fillOpacity: .85};
+  return {color: borde, weight: 2, fillColor: borde, fillOpacity: .25};
+}
+function estiloPunto(p) {
+  const e = estilo(p);
+  return modoColor === "rend" ? {radius: 5.5, color: e.color, weight: 2.5, fillColor: e.fillColor, fillOpacity: 1} : {radius: 5, color: "#fff", weight: 1.5, fillColor: e.color, fillOpacity: 1};
+}
+function leyenda() {
+  let h;
+  if (modoColor === "rend") {
+    const et = ["menos de 3.0", "3.0 a 3.5", "3.5 a 4.0", "4.0 a 4.5", "4.5 o más"];
+    h = `<b>Rendimiento (t/ha)</b>` + RAMPA.map((c, i) => `<p><i style="background:${c}"></i>${et[i]}</p>`).join("")
+      + `<div class="extra"><p style="margin-top:8px"><i class="borde" style="border-color:${COLOR.ent}"></i>Borde: observado (entrenamiento)</p><p><i class="borde" style="border-color:${COLOR.pred}"></i>Borde: estimado (predicción)</p></div>`;
+  } else {
+    h = `<b>Conjunto</b><p><i style="background:${COLOR.ent}"></i>Entrenamiento: rendimiento observado (138)</p><p><i style="background:${COLOR.pred}"></i>Predicción: estimado por el modelo (59)</p>`;
+  }
+  $("leyenda").innerHTML = h;
+}
+function opcionesMunicipio() {
+  const lista = [...new Set(D.parcelas.filter(f => !filtros.estado || f.properties.estado === filtros.estado).map(f => f.properties.municipio))].sort((a, b) => a.localeCompare(b, "es"));
+  const antes = filtros.municipio;
+  $("f-municipio").replaceChildren(new Option("Todos", ""), ...lista.map(m => new Option(m, m)));
+  filtros.municipio = lista.includes(antes) ? antes : ""; $("f-municipio").value = filtros.municipio;
+}
+function dibujar() {
+  capaPol.clearLayers(); capaPun.clearLayers(); capas.clear(); let n = 0;
+  for (const f of D.parcelas) {
+    const p = f.properties;
+    if ((filtros.estado && p.estado !== filtros.estado) || (filtros.municipio && p.municipio !== filtros.municipio) || (filtros.conjunto && p.conjunto !== filtros.conjunto)) continue;
+    const poly = L.geoJSON(f, {style: estilo(p)}), punto = L.circleMarker([p.lat, p.lon], estiloPunto(p));
+    poly.on("click", () => seleccionar(p.id)); punto.on("click", () => seleccionar(p.id));
+    poly.bindTooltip(p.id, {sticky: true, direction: "top"}); punto.bindTooltip(p.id, {direction: "top"});
+    capaPol.addLayer(poly); capaPun.addLayer(punto); capas.set(p.id, {poly, punto}); n++;
+  }
+  if (seleccion && capas.has(seleccion)) resaltar(seleccion);
+  $("contador").textContent = "Mostrando " + n + " de 197 parcelas";
+  return n;
+}
+function puntosSegunZoom() {                       // de cerca se ven los polígonos; de lejos, los puntos
+  const ver = mapa.getZoom() < 15;
+  if (ver && !mapa.hasLayer(capaPun)) capaPun.addTo(mapa);
+  if (!ver && mapa.hasLayer(capaPun)) mapa.removeLayer(capaPun);
+}
+mapa.on("zoomend", puntosSegunZoom);
+function margenes() {                              // espacio que tapan los filtros y la ficha, para que las parcelas queden a la vista
+  const m = $("mapa").getBoundingClientRect(), f = $("filtros-mapa").getBoundingClientRect(), pn = $("panel");
+  const tl = [16, Math.max(16, f.bottom - m.top + 12)], br = [16, 16];
+  if (!pn.hidden) {
+    const r = pn.getBoundingClientRect();
+    if (r.width > m.width * 0.6) br[1] = Math.max(16, m.bottom - r.top + 12);   // celular: la ficha ocupa la parte de abajo
+    else tl[0] = Math.max(16, r.right - m.left + 12);                            // escritorio: la ficha está a la izquierda
+  }
+  return {paddingTopLeft: tl, paddingBottomRight: br};
+}
+function encuadrar() {
+  const b = L.latLngBounds([]);
+  capas.forEach(c => b.extend(c.poly.getBounds()));
+  if (b.isValid()) { mapa.fitBounds(b, Object.assign(margenes(), {maxZoom: 15})); D.encuadrado = true; }
+}
+function resaltar(id) {
+  if (seleccion && seleccion !== id && capas.has(seleccion)) capas.get(seleccion).poly.setStyle(estilo(D.porId.get(seleccion)));
+  seleccion = id;
+  const c = capas.get(id); if (!c) return;
+  c.poly.setStyle({color: COLOR.sel, weight: 4.5}); c.poly.bringToFront();
+}
+function seleccionar(id, mover = true) {
+  const p = D.porId.get(id); if (!p) return;
+  resaltar(id);
+  const panel = $("panel");
+  pintarFicha(panel, p);
+  panel.insertAdjacentHTML("afterbegin", `<button class="cerrar" id="cerrar-panel" type="button" aria-label="Cerrar la ficha">×</button>`);
+  panel.hidden = false; panel.scrollTop = 0;
+  $("cerrar-panel").onclick = () => { panel.hidden = true; if (seleccion && capas.has(seleccion)) capas.get(seleccion).poly.setStyle(estilo(p)); seleccion = null; };
+  if (mover) mapa.panInside(L.latLng(p.lat, p.lon), margenes());   // si la ficha tapa la parcela, el mapa se recorre lo mínimo
+}
+function avisar(t) { $("aviso").textContent = t; $("aviso").hidden = false; clearTimeout(avisar.t); avisar.t = setTimeout(() => $("aviso").hidden = true, 2500); }
+function mostrarEnMapa(id) {
+  id = String(id).trim().toUpperCase();
+  if (/^\d+$/.test(id)) id = "AGC_" + id.padStart(3, "0");          // también acepta solo el número: 3 → AGC_003
+  if (!D.porId.has(id)) { avisar("No se encontró la parcela " + id); return; }
+  if (!capas.has(id)) { Object.assign(filtros, {estado: "", municipio: "", conjunto: ""}); $("f-estado").value = ""; $("f-conjunto").value = ""; opcionesMunicipio(); dibujar(); }
+  $("f-id").value = id;
+  if ($("filtros-mapa").classList.contains("abierto")) $("b-filtros").click();     // celular: se pliegan los filtros para ver el mapa
+  seleccionar(id, false);
+  mapa.fitBounds(capas.get(id).poly.getBounds(), Object.assign(margenes(), {maxZoom: 17}));
+}
+function prepararMapa() {
+  const estados = [...new Set(D.parcelas.map(f => f.properties.estado))].sort((a, b) => a.localeCompare(b, "es"));
+  $("f-estado").replaceChildren(new Option("Todos", ""), ...estados.map(e => new Option(e, e)));
+  opcionesMunicipio(); leyenda(); dibujar(); puntosSegunZoom();
+  $("f-estado").onchange = e => { filtros.estado = e.target.value; filtros.municipio = ""; opcionesMunicipio(); dibujar(); encuadrar(); };
+  $("f-municipio").onchange = e => { filtros.municipio = e.target.value; dibujar(); encuadrar(); };
+  $("f-conjunto").onchange = e => { filtros.conjunto = e.target.value; dibujar(); encuadrar(); };
+  $("f-color").onchange = e => { modoColor = e.target.value; leyenda(); dibujar(); };
+  $("b-buscar").onclick = () => mostrarEnMapa($("f-id").value);
+  $("f-id").onkeydown = e => { if (e.key === "Enter") mostrarEnMapa($("f-id").value); };
+  $("b-limpiar").onclick = () => { Object.assign(filtros, {estado: "", municipio: "", conjunto: ""}); $("f-estado").value = ""; $("f-conjunto").value = ""; $("f-id").value = ""; $("panel").hidden = true; seleccion = null; opcionesMunicipio(); dibujar(); encuadrar(); };
+  $("b-filtros").onclick = () => { const a = $("filtros-mapa").classList.toggle("abierto"); $("b-filtros").setAttribute("aria-expanded", a); };
+}
+
+/* ===== Inicio ===== */
+function pintarInicio() {
+  const v = D.parcelas.filter(f => f.properties.conjunto === "PREDICCION").map(f => f.properties.rend_pred);
+  $("i-rango").textContent = f4(Math.min(...v)) + " a " + f4(Math.max(...v));
+}
+
+/* ===== Predicciones ===== */
+let orden = {campo: "id", asc: true}, selPred = null;
+function pintarPredicciones() {
+  const pred = D.parcelas.map(f => f.properties).filter(p => p.conjunto === "PREDICCION");
+  const muns = [...new Set(pred.map(p => p.municipio))].sort((a, b) => a.localeCompare(b, "es"));
+  $("p-mun").replaceChildren(new Option("Todos", ""), ...muns.map(m => new Option(m, m)));
+  const tabla = () => {
+    const q = $("p-buscar").value.trim().toUpperCase(), m = $("p-mun").value;
+    const filas = pred.filter(p => (!q || p.id.includes(q)) && (!m || p.municipio === m)).sort((a, b) => {
+      const x = a[orden.campo], y = b[orden.campo];
+      const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "es");
+      return orden.asc ? c : -c;
+    });
+    const tb = $("t-pred").tBodies[0]; tb.replaceChildren();
+    for (const p of filas) {
+      const tr = document.createElement("tr"); tr.tabIndex = 0; if (p.id === selPred) tr.className = "sel";
+      tr.innerHTML = `<td><b>${esc(p.id)}</b></td><td>${esc(p.municipio)}</td><td class="num">${f2(p.area_ha)}</td><td class="num"><b>${f4(p.rend_pred)}</b></td><td class="num">${f4(p.prom_mun)}</td><td class="num">${conSigno(p.corr_temp)}</td>`;
+      const elegir = () => {
+        selPred = p.id; tb.querySelectorAll("tr").forEach(t => t.classList.remove("sel")); tr.classList.add("sel");
+        pintarFicha($("p-detalle"), p);
+        $("p-detalle").insertAdjacentHTML("beforeend", `<div class="botones"><a class="boton borde chico" href="#mapa/${encodeURIComponent(p.id)}">Ver en el mapa</a><a class="boton borde chico" href="#modelo" data-paso="${esc(p.id)}">Ver el cálculo paso a paso</a></div>`);
+        $("p-detalle").querySelector("[data-paso]").onclick = () => { $("s-paso").value = p.id; pasoAPaso(p.id); setTimeout(() => $("ejecuta").scrollIntoView(), 80); };
+        if (window.innerWidth <= 900) $("p-detalle").scrollIntoView({behavior: "smooth", block: "start"});
+      };
+      tr.onclick = elegir; tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); elegir(); } };
+      tb.appendChild(tr);
+    }
+    $("p-cuenta").textContent = filas.length + " de 59 parcelas";
+  };
+  $("p-buscar").oninput = tabla; $("p-mun").onchange = tabla;
+  document.querySelectorAll("#t-pred th button").forEach(b => b.onclick = () => { const c = b.dataset.orden; orden = {campo: c, asc: orden.campo === c ? !orden.asc : true}; tabla(); });
+  tabla();
+  // promedio por municipio, con los mismos valores de cuatro decimales de la tabla
+  const grupos = new Map();
+  for (const p of pred) { const k = p.estado + "|" + p.municipio; if (!grupos.has(k)) grupos.set(k, {estado: p.estado, municipio: p.municipio, v: [], obs: p.prom_mun}); grupos.get(k).v.push(Number(p.rend_pred.toFixed(4))); }
+  const tm = $("t-mun").tBodies[0]; tm.replaceChildren();
+  [...grupos.values()].sort((a, b) => (a.estado + a.municipio).localeCompare(b.estado + b.municipio, "es")).forEach(g => {
+    const media = g.v.reduce((s, x) => s + x, 0) / g.v.length, nEnt = D.modelo.municipios[g.municipio].n_entrenamiento;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${esc(g.estado)}</td><td>${esc(g.municipio)}</td><td class="num">${g.v.length}</td><td class="num"><b>${f4(media)}</b></td><td class="num">${nEnt}</td><td class="num">${f4(g.obs)}</td>`;
+    tm.appendChild(tr);
+  });
+}
+
+/* ===== El modelo ===== */
+function pintarModelo() {
+  const M = D.modelo, tb = $("t-coef").tBodies[0]; tb.replaceChildren();
+  M.coef_t_ha_por_grado.forEach((b, k) => {
+    const efecto = M.peso_correccion * b * M.desviacion_dentro_municipio[k];
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${MESES[k][1]}</td><td class="num">${conSigno(b)}</td><td class="num">${f3(M.desviacion_dentro_municipio[k])}</td><td class="num"><b>${conSigno(efecto)}</b></td>`;
+    tb.appendChild(tr);
+  });
+  const ds = M.desviacion_dentro_municipio;
+  $("m-desv").textContent = "de " + f2(Math.min(...ds)) + " a " + f2(Math.max(...ds)) + " °C según el mes";
+  const juntos = M.peso_correccion * M.coef_t_ha_por_grado.reduce((s, b) => s + b, 0) * 0.1;
+  $("m-conjunto").textContent = "Por ejemplo, si una parcela fuera 0.1 °C más cálida que el promedio de su municipio en los siete meses, su estimación " + (juntos < 0 ? "bajaría " : "subiría ") + Math.abs(juntos).toFixed(4) + " t/ha.";
+  $("m-params").textContent = "quedaron la mezcla ρ = " + M.mezcla_l1.toFixed(1) + " y α = " + M.alfa.toFixed(4);
+  const corr = Object.keys(M.parcelas_prediccion).map(id => calcular(id).correccion);
+  $("m-rango-corr").textContent = "en las 59 parcelas va de " + conSigno(Math.min(...corr), 3) + " a " + conSigno(Math.max(...corr), 3) + " t/ha";
+  const ids = Object.keys(M.parcelas_prediccion).sort();
+  $("s-paso").replaceChildren(...ids.map(i => new Option(i + " · " + M.parcelas_prediccion[i].municipio, i)));
+  $("s-paso").onchange = () => pasoAPaso($("s-paso").value);
+  pasoAPaso(ids[0]);
+  $("b-ejecutar").onclick = ejecutarTodo;
+}
+function leerCSV(texto) {
+  const lineas = texto.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim() !== "");
+  const cab = lineas[0].split(","), iId = cab.indexOf("ID_POLIGONO"), iR = cab.indexOf("RENDIMIENTO_T_HA");
+  if (iId < 0 || iR < 0) throw Error("el archivo no tiene las columnas ID_POLIGONO y RENDIMIENTO_T_HA");
+  return new Map(lineas.slice(1).map(l => { const c = l.split(","); return [c[iId], c[iR]]; }));
+}
+async function ejecutarTodo() {
+  const b = $("b-ejecutar"), out = $("r-ejecutar"); b.disabled = true; out.innerHTML = `<p class="nota">Calculando…</p>`;
+  try {
+    const r = await fetch(CSV_ENTREGA, {cache: "no-store"}); if (!r.ok) throw Error("HTTP " + r.status);
+    const oficial = leerCSV(await r.text());
+    const filas = []; let iguales = 0;
+    const ids = Object.keys(D.modelo.parcelas_prediccion).sort();
+    for (const id of ids) {
+      const c = calcular(id), calc = c.estimado.toFixed(4), ofi = oficial.get(id), ok = calc === ofi;
+      if (ok) iguales++;
+      filas.push(`<tr><td>${esc(id)}</td><td>${esc(c.municipio)}</td><td class="num">${calc}</td><td class="num">${esc(ofi ?? "no está")}</td><td class="${ok ? "ok" : "no"}">${ok ? "Coincide" : "Distinto"}</td></tr>`);
+    }
+    const todo = iguales === ids.length && oficial.size === ids.length;
+    out.innerHTML = `<p class="estado-ej ${todo ? "bien" : "mal"}">${iguales} de ${oficial.size} estimaciones calculadas aquí coinciden con el archivo de entrega.</p>`
+      + `<details open><summary>Ver las ${ids.length}</summary><div class="tabla-wrap" style="max-height:360px"><table class="tabla chica"><thead><tr><th>Parcela</th><th>Municipio</th><th class="num">Calculado aquí (t/ha)</th><th class="num">Archivo de entrega (t/ha)</th><th>Resultado</th></tr></thead><tbody>${filas.join("")}</tbody></table></div></details>`;
+  } catch (e) {
+    out.innerHTML = `<p class="estado-ej mal">No se pudo leer el archivo de entrega (${esc(e.message)}).</p>`;
+  }
+  b.disabled = false;
+}
+let paso = null;
+function pasoAPaso(id) {
+  const r = calcular(id), M = D.modelo; if (!r) return;
+  paso = {id, r, tmax: r.tmax.slice()};
+  let h = `<div class="tabla-wrap"><table class="tabla chica" id="t-paso"><thead><tr><th>Mes</th><th class="num">Temp. máx. de la parcela (°C)</th><th class="num">Promedio de su municipio (°C)</th><th class="num">Diferencia (°C)</th><th class="num">β (t/ha por °C)</th><th class="num">Aporte = ½ × β × diferencia</th></tr></thead><tbody>`;
+  r.tmax.forEach((t, k) => h += `<tr><td>${MESES[k][1]}</td><td class="num"><input type="number" step="0.01" inputmode="decimal" data-k="${k}" value="${t.toFixed(4)}" aria-label="Temperatura máxima de ${MESES[k][1]} en grados Celsius"></td><td class="num">${r.tmaxMun[k].toFixed(4)}</td><td class="num" id="pd-${k}"></td><td class="num">${conSigno(M.coef_t_ha_por_grado[k])}</td><td class="num" id="pa-${k}"></td></tr>`);
+  h += `<tr class="total"><td colspan="5">Corrección = suma de los aportes</td><td class="num" id="pa-tot"></td></tr></tbody></table></div><div class="calculo" id="p-res" aria-live="polite"></div>`;
+  h += `<div class="botones"><button type="button" class="boton borde chico" id="b-reset">Volver a los valores reales</button></div>`;
+  $("r-paso").innerHTML = h;
+  $("r-paso").querySelectorAll("input").forEach(inp => inp.oninput = () => {
+    const k = +inp.dataset.k, v = parseFloat(inp.value), real = r.tmax[k].toFixed(4);
+    paso.tmax[k] = inp.value === real ? r.tmax[k] : (Number.isFinite(v) ? v : NaN);   // mismo texto que el valor real: se usa el valor exacto
+    inp.classList.toggle("cambio", inp.value !== real);
+    actualizarPaso();
+  });
+  $("b-reset").onclick = () => pasoAPaso(id);
+  actualizarPaso();
+}
+function actualizarPaso() {
+  const {id, r, tmax} = paso, out = $("p-res");
+  if (tmax.some(v => !Number.isFinite(v))) { out.innerHTML = `<p>Escribe una temperatura en cada mes.</p>`; return; }
+  const c = aplicar(r.municipio, tmax), cambiados = tmax.filter((v, k) => v !== r.tmax[k]).length;
+  c.aportes.forEach((v, k) => { $("pd-" + k).textContent = conSigno(tmax[k] - r.tmaxMun[k]); $("pa-" + k).textContent = conSigno(v, 6); });
+  $("pa-tot").textContent = conSigno(c.correccion, 6);
+  let h = `<p>Promedio de su municipio (${esc(r.municipio)}) = <b>${c.base.toFixed(6)}</b> t/ha</p>`
+    + `<p>Estimación = ${c.base.toFixed(6)} ${c.correccion < 0 ? "−" : "+"} ${Math.abs(c.correccion).toFixed(6)} = <b>${c.estimado.toFixed(6)}</b> → <b>${c.estimado.toFixed(4)} t/ha</b></p>`;
+  if (!cambiados) h += `<p class="nota" style="margin:4px 0 0">Valor en el archivo de entrega: ${f4(D.porId.get(id).rend_pred)} t/ha.</p>`;
+  else {
+    h += `<p class="nota" style="margin:4px 0 0">Con ${cambiados} ${cambiados === 1 ? "mes cambiado" : "meses cambiados"} por ti. La estimación oficial de ${esc(id)} es ${f4(D.porId.get(id).rend_pred)} t/ha.</p>`;
+    const fuera = tmax.map((v, k) => [v, k]).filter(([v, k]) => v !== r.tmax[k] && (v < D.rango[k][0] || v > D.rango[k][1]));
+    if (fuera.length) h += `<p class="alerta">${fuera.map(([v, k]) => `${MESES[k][1]}: ${v.toFixed(2)} °C está fuera de lo observado en las 197 parcelas en 2025 (${f2(D.rango[k][0])} a ${f2(D.rango[k][1])} °C).`).join(" ")} El modelo no se probó con valores así.</p>`;
+  }
+  out.innerHTML = h;
+}
+
+/* ===== Resultados ===== */
+function pintarResultados(c) {
+  const mods = c.modelos, ref = mods.find(m => m.modelo === "Promedio municipal");
+  const arriba = mods.filter(m => m.lugar <= ref.lugar);
+  const min = 0.490, max = 0.516, pos = v => ((v - min) / (max - min) * 100).toFixed(2) + "%";
+  const g = $("g-modelos"); g.replaceChildren();
+  g.insertAdjacentHTML("beforeend", `<div class="leyenda-p"><span><i style="background:var(--campo-osc)"></i>Modelo elegido</span><span><i style="background:var(--gris)"></i>Otros modelos</span><span><i style="background:var(--gris-osc)"></i><span class="lin"></span>Promedio municipal (referencia)</span></div>`);
+  for (const m of arriba) {
+    const fila = document.createElement("div"); fila.className = "fila-p"; fila.tabIndex = 0;
+    const gana = m.lugar === 1, esRef = m === ref;
+    fila.innerHTML = `<span class="n">${m.lugar}. ${gana || esRef ? "<b>" + esc(m.modelo) + "</b>" : esc(m.modelo)}</span><span class="pista"><span class="ref" style="left:${pos(ref.RMSE)}"></span><i class="${gana ? "gana" : esRef ? "refm" : ""}" style="left:${pos(m.RMSE)}"></i></span><span class="v">${gana || esRef ? Number(m.RMSE).toFixed(4) : ""}</span>`;
+    tipEn(fila, () => `<b>RMSE ${Number(m.RMSE).toFixed(5)} t/ha</b><br>${esc(m.modelo)}<br><span class="s">MAE ${Number(m.MAE).toFixed(5)} · R² ${Number(m["R²"]).toFixed(5)} · ${esRef ? "es la referencia" : "gana al promedio municipal en " + esc(m["gana vs. municipal"]) + " repartos"}</span>`);
+    g.appendChild(fila);
+  }
+  const eje = document.createElement("div"); eje.className = "eje-p";
+  eje.innerHTML = `<span class="nota" style="margin:0">RMSE (t/ha)</span><span class="marcas">${[0.490, 0.495, 0.500, 0.505, 0.510, 0.515].map(v => `<span style="left:${pos(v)}">${v.toFixed(3)}</span>`).join("")}</span><span></span>`;
+  g.appendChild(eje);
+  const tb = $("t-modelos").tBodies[0]; tb.replaceChildren();
+  for (const m of mods) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="num">${m.lugar}</td><td>${esc(m.modelo)}</td><td class="num">${Number(m.RMSE).toFixed(5)}</td><td class="num">${Number(m.MAE).toFixed(5)}</td><td class="num">${Number(m["R²"]).toFixed(5)}</td><td class="num">${m === ref ? "referencia" : esc(m["gana vs. municipal"] ?? "")}</td><td class="num">${m["RMSE nuevos"] == null ? "" : Number(m["RMSE nuevos"]).toFixed(5)}</td>`;
+    tb.appendChild(tr);
+  }
+}
+
+/* ===== Código ===== */
+function pintarCodigo(c) {
+  $("c-huella").textContent = c.huella_md5; $("b-colab").href = COLAB;
+  const cont = $("c-secciones"); cont.replaceChildren();
+  const seccion = (titulo, html, codigo) => {
+    const d = document.createElement("details"); d.className = "seccion-c";
+    const sm = document.createElement("summary"); sm.textContent = titulo; d.appendChild(sm);
+    const div = document.createElement("div"); div.innerHTML = html || "";
+    if (codigo) { const pre = document.createElement("pre"); pre.className = "codigo"; const code = document.createElement("code"); code.textContent = codigo; pre.appendChild(code); div.appendChild(pre); }
+    d.appendChild(div); cont.appendChild(d);
+  };
+  if (c.presentacion) seccion("Presentación del cuaderno", c.presentacion, "");
+  c.secciones.forEach(s => seccion(s.titulo, s.explicacion, s.codigo));
+}
+
+/* ===== Datos ===== */
+function pintarDatos(a) {
+  const cont = $("d-grupos"); cont.replaceChildren();
+  for (const gr of [...new Set(a.archivos.map(x => x.grupo))]) {
+    const sec = document.createElement("div"); sec.className = "grupo-d";
+    sec.innerHTML = `<h2>${esc(gr)}</h2>`;
+    a.archivos.filter(x => x.grupo === gr).forEach(x => sec.insertAdjacentHTML("beforeend",
+      `<div class="archivo"><h3>${esc(x.archivo)}<small>${tam(x.bytes)}</small></h3><p><b>Qué contiene:</b> ${esc(x.contiene)}</p><p><b>Para qué sirve:</b> ${esc(x.uso)}</p><p><b>Cómo se obtuvo:</b> ${esc(x.origen)}</p><p class="h">Huella md5: ${esc(x.huella_md5)}</p><a class="boton borde" href="${esc(x.ruta)}" download>Descargar</a></div>`));
+    cont.appendChild(sec);
+  }
+}
+
+/* ===== Documentos ===== */
+async function pintarDocumentos() {
+  const lista = $("docs-lista"); let n = 0;
+  for (const d of DOCUMENTOS) {
+    try { const r = await fetch(d.archivo, {method: "HEAD", cache: "no-store"}); if (!r.ok) continue; } catch (e) { continue; }
+    lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>${esc(d.nombre)}</h3><p class="nota">${esc(d.texto)}</p><a class="boton borde" href="${esc(d.archivo)}" target="_blank" rel="noopener">Abrir el PDF</a></div>`); n++;
+  }
+  if (VIDEO) { lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>Video</h3><p class="nota">Demostración del modelo y de esta página (máximo 5 minutos).</p><a class="boton borde" href="${esc(VIDEO)}" target="_blank" rel="noopener">Ver el video</a></div>`); n++; }
+  $("docs-vacio").hidden = n > 0;
+  $("equipo").innerHTML = INTEGRANTES.map(x => `<li>${esc(x)}</li>`).join("");
+}
+
+/* ===== Arranque ===== */
+async function iniciar() {
+  altoBarra(); ruta();
+  try {
+    const [geo, modelo] = await Promise.all([leer("data/parcelas_agrocebada.geojson"), leer("data/modelo.json")]);
+    D.parcelas = verificar(geo); D.parcelas.forEach(f => D.porId.set(f.properties.id, f.properties)); D.modelo = modelo;
+    let m = 0;
+    for (const id of Object.keys(modelo.parcelas_prediccion)) { const c = calcular(id); for (const v of c.aportes.concat(c.correccion)) m = Math.max(m, Math.abs(v)); }
+    D.maxAporte = Math.ceil(m * 20) / 20;                                 // escala común a todas las fichas, en pasos de 0.05
+    D.rango = MESES.map(([k]) => { const v = D.parcelas.map(f => f.properties["tmax_" + k]); return [Math.min(...v), Math.max(...v)]; });
+    pintarInicio(); prepararMapa(); pintarPredicciones(); pintarModelo();
+    if (!$("v-mapa").hidden) ruta();
+  } catch (e) {
+    console.error(e);
+    avisar("No se pudieron cargar los datos de las parcelas: " + e.message); clearTimeout(avisar.t);
+    $("contador").textContent = "Sin datos";
+  }
+  leer("data/comparacion_modelos.json").then(pintarResultados).catch(e => { console.error(e); $("g-modelos").textContent = "No se pudo cargar la comparación de modelos."; });
+  leer("data/cuaderno.json").then(pintarCodigo).catch(e => { console.error(e); $("c-secciones").textContent = "No se pudo cargar el cuaderno."; });
+  leer("data/archivos.json").then(pintarDatos).catch(e => { console.error(e); $("d-grupos").textContent = "No se pudo cargar la lista de archivos."; });
+  pintarDocumentos();
+}
+iniciar();
 </script>
 </body>
 </html>

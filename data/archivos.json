@@ -1,0 +1,114 @@
+{
+ "archivos": [
+  {
+   "grupo": "Para ejecutar el código (necesarios)",
+   "archivo": "AgroCebada_Cuaderno_Final.ipynb",
+   "ruta": "codigo/AgroCebada_Cuaderno_Final.ipynb",
+   "bytes": 68880,
+   "huella_md5": "a59f6eb1fbe2f26ff66eb54ddb3d0d0f",
+   "contiene": "El código completo del modelo, en 15 secciones: carga y revisión de los datos, variables, comparación de 43 modelos con los mismos repartos, selección automática del ganador, entrenamiento final, las 59 predicciones y las gráficas.",
+   "uso": "Se abre en Google Colab y se ejecuta completo.",
+   "origen": "Cuaderno del equipo Visión Terra Data."
+  },
+  {
+   "grupo": "Para ejecutar el código (necesarios)",
+   "archivo": "todo__basico_terminado.csv",
+   "ruta": "descargas/todo__basico_terminado.csv",
+   "bytes": 2978428,
+   "huella_md5": "3b5063c4967adc457fb85063193e48fb",
+   "contiene": "Tabla maestra: una fila por cada una de las 197 parcelas y 1,381 columnas. Trae identificador, municipio, estado, conjunto, área, rendimiento (de las 138 parcelas de entrenamiento), elevación y pendiente, lluvia y temperatura mínima y máxima mensuales de 2022 a 2025, e índices satelitales mensuales de 2025.",
+   "uso": "Es la entrada principal del cuaderno. De aquí salen el rendimiento de entrenamiento, el municipio y la temperatura máxima mensual que usa el modelo final.",
+   "origen": "La armó el equipo en QGIS (sistema de información geográfica) con 6 códigos. Cruzan la capa de parcelas de FIRA con los rásteres de relieve (Continuo de Elevaciones Mexicano, 120 m), de lluvia (CHIRPS, Climate Hazards Group InfraRed Precipitation with Station data) y de temperatura (CHIRTS-ERA5, producto de temperatura del Climate Hazards Center), y le unen el rendimiento y los índices satelitales de los conjuntos de datos PRO (Planet) y BÁSICO (Sentinel-2 y Landsat) que entregó FIRA."
+  },
+  {
+   "grupo": "Para ejecutar el código (necesarios)",
+   "archivo": "ID_area_rendimiento_70_30_Reto_AgroCebada.csv",
+   "ruta": "descargas/ID_area_rendimiento_70_30_Reto_AgroCebada.csv",
+   "bytes": 6241,
+   "huella_md5": "c4ea664d9c6161fcfd8f297d6f53db9a",
+   "contiene": "Archivo original de FIRA con las 197 parcelas: identificador (ID_POLIGONO), área en hectáreas, rendimiento en toneladas por hectárea (solo las 138 de entrenamiento) y conjunto (ENTRENAMIENTO o PREDICCION).",
+   "uso": "El cuaderno comprueba que coincida con la tabla maestra y copia de él, tal cual, el identificador, el área y el conjunto del archivo de entrega.",
+   "origen": "Proporcionado por FIRA. Se publica sin cambios."
+  },
+  {
+   "grupo": "Opcionales (solo sirven para verificar)",
+   "archivo": "candidatas_fase2.csv",
+   "ruta": "descargas/candidatas_fase2.csv",
+   "bytes": 59455,
+   "huella_md5": "0600b6e321222692a2d0ab168f9ceb8c",
+   "contiene": "Las 22 variables candidatas que se eligieron en la Fase 2 del proyecto.",
+   "uso": "Si se sube, el cuaderno comprueba que rehace exactamente las mismas 22 variables.",
+   "origen": "Salida del cuaderno de la Fase 2 del equipo."
+  },
+  {
+   "grupo": "Opcionales (solo sirven para verificar)",
+   "archivo": "diccionario_1381_completo.csv",
+   "ruta": "descargas/diccionario_1381_completo.csv",
+   "bytes": 256752,
+   "huella_md5": "ae42bcd833d4983a7bbc0ff6ade95c42",
+   "contiene": "El significado de las 1,381 columnas de la tabla maestra.",
+   "uso": "Si se sube, el cuaderno describe los datos mensuales que usa la red LSTM (red de memoria de corto y largo plazo).",
+   "origen": "Respaldo del proyecto."
+  },
+  {
+   "grupo": "Resultados del cuaderno",
+   "archivo": "visionterradata_prediccion.csv",
+   "ruta": "descargas/visionterradata_prediccion.csv",
+   "bytes": 1933,
+   "huella_md5": "aaac4544eef073e3c9be958b250f7ad1",
+   "contiene": "Las 59 predicciones con la estructura del archivo de FIRA: ID_POLIGONO, AREA_HA, RENDIMIENTO_T_HA (con cuatro decimales) y CONJUNTO.",
+   "uso": "Es el archivo que se entrega a FIRA.",
+   "origen": "Sección 12 del cuaderno, corrida en Colab del 18 de octubre de 2026."
+  },
+  {
+   "grupo": "Resultados del cuaderno",
+   "archivo": "tabla_anexos_predicciones.csv",
+   "ruta": "descargas/tabla_anexos_predicciones.csv",
+   "bytes": 913,
+   "huella_md5": "4a0f87ccd54928b67ae6130d853b3168",
+   "contiene": "Las mismas 59 predicciones en dos columnas: ID_parcela y rendimiento_t_ha.",
+   "uso": "Base de la tabla de predicciones de los anexos.",
+   "origen": "Sección 12 del cuaderno, misma corrida."
+  },
+  {
+   "grupo": "Resultados del cuaderno",
+   "archivo": "comparacion_modelos_final.csv",
+   "ruta": "descargas/comparacion_modelos_final.csv",
+   "bytes": 5155,
+   "huella_md5": "40706f10cd7a8c11d8b155983260baca",
+   "contiene": "Los errores de los 43 modelos: RMSE (raíz del error cuadrático medio), MAE (error absoluto medio), R² (coeficiente de determinación), estabilidad entre repartos, cuántos repartos le ganan al promedio municipal, confirmación y remuestreo.",
+   "uso": "Con esta tabla el cuaderno elige al ganador, con la regla fijada antes de correr.",
+   "origen": "Secciones 7 a 10 del cuaderno, misma corrida."
+  },
+  {
+   "grupo": "Datos de esta página",
+   "archivo": "parcelas_agrocebada.geojson",
+   "ruta": "data/parcelas_agrocebada.geojson",
+   "bytes": 336085,
+   "huella_md5": "a5bc5cfeb12ab961412d8fadb1576421",
+   "contiene": "Los polígonos de las 197 parcelas con su conjunto, área, rendimiento observado o estimado, promedio de su municipio, corrección por temperatura y temperatura máxima mensual de abril a octubre de 2025.",
+   "uso": "Alimenta el mapa y las fichas de las parcelas.",
+   "origen": "Combina la capa de parcelas y el archivo de FIRA, la tabla maestra y el archivo de entrega, sin cambiar sus valores. La temperatura se redondea a 2 decimales para mostrarla."
+  },
+  {
+   "grupo": "Datos de esta página",
+   "archivo": "parcelas_agrocebada.csv",
+   "ruta": "descargas/parcelas_agrocebada.csv",
+   "bytes": 25144,
+   "huella_md5": "34885d2685c37979f814841c9a3dd442",
+   "contiene": "Los mismos datos del mapa, sin los polígonos.",
+   "uso": "Para consultarlos o abrirlos en Excel.",
+   "origen": "Generado a partir del archivo anterior."
+  },
+  {
+   "grupo": "Datos de esta página",
+   "archivo": "modelo.json",
+   "ruta": "data/modelo.json",
+   "bytes": 16640,
+   "huella_md5": "98874d19ba186c8698ca8cac8f827f17",
+   "contiene": "Los parámetros del modelo final ya entrenado: coeficientes, promedios municipales del rendimiento y de la temperatura máxima, y la temperatura máxima de las 59 parcelas a estimar.",
+   "uso": "Con este archivo la página ejecuta el modelo y comprueba que reproduce las 59 predicciones oficiales.",
+   "origen": "Calculado con el ajuste final del cuaderno (mezcla 0.1 y alfa 0.0247)."
+  }
+ ]
+}
