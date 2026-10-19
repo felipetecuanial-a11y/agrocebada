@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Agrocebada: mapa de parcelas (v4)</title>
+<style>
+:root{
+  --agua:#B5D3E3; --agua-tinta:#5E8AA3;
+  --tierra-ext:#E3E1D8; --tierra:#F7F4EA; --linde:#B4AE9A;
+  --cebada:#D9A32B; --campo:#6DAE5B; --campo-osc:#2B6629; --campo-claro:#E6F1E0;
+  --pred:#3D3FA6;
+  --tinta:#22301F; --tinta-2:#5A6656; --papel:#FFFFFF; --raya:#E4E2DA;
+  --sombra:0 2px 10px rgba(34,48,31,.22);
+  --fuente:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--fuente);color:var(--tinta);background:var(--agua);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
+#app{position:fixed;inset:0}
+
+
+#mapa{position:absolute;inset:0;background:#E3E1D8}.arriba{z-index:5;position:absolute;top:10px;left:10px;width:min(750px,calc(100% - 20px));pointer-events:none}.arriba>*{pointer-events:auto}
+.fila1{display:flex;gap:8px;margin-bottom:8px}.inicio{border:0;background:#2B6629;color:white;padding:12px;border-radius:10px;cursor:pointer}.marca{background:white;border-radius:10px;padding:8px 14px;box-shadow:var(--sombra)}.marca h1{font-size:17px;margin:0}.marca p{font-size:12px;margin:0}.filtros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;background:white;border-radius:12px;padding:12px;box-shadow:var(--sombra)}
+.filtros label{display:flex;flex-direction:column;font-size:13px;font-weight:600;gap:4px;min-width:0}.filtros select,.filtros input{height:42px;border:1px solid #bbb;border-radius:8px;min-width:0;padding:5px;font:14px system-ui;width:100%}.acciones{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;align-items:center}.acciones button,#buscar{border:0;border-radius:8px;background:#E6F1E0;padding:8px;cursor:pointer}.busqueda{display:flex;gap:4px}.contador{font-size:14px;font-weight:600}
+#aviso{position:absolute;z-index:4;left:50%;top:53%;transform:translate(-50%,-50%);background:white;border-radius:12px;padding:18px;box-shadow:var(--sombra);text-align:center;width:max-content;max-width:90vw}#aviso[hidden]{display:none}.leyenda{position:absolute;right:12px;bottom:18px;z-index:3;background:white;border-radius:10px;padding:12px;box-shadow:var(--sombra);font-size:13px}.leyenda p{margin:5px 0}.leyenda i{display:inline-block;width:12px;height:12px;border-radius:100%;margin-right:8px}.panel{position:absolute;bottom:10px;left:10px;z-index:4;max-height:55vh;overflow:auto;background:#fff;padding:14px;border-radius:12px;box-shadow:var(--sombra);width:min(400px,calc(100% - 20px))}.panel[hidden]{display:none}.panel button{float:right;border:none;background:white;font-size:22px}.ficha table{border-collapse:collapse;width:100%;font-size:13px}.ficha td,.ficha th{padding:5px;border-bottom:1px solid #ddd;text-align:left}.ficha h3{margin:2px 0 10px}.ficha p{font-size:14px}.ficha .nota{color:#5A6656;font-size:12px}.leaflet-popup-content{max-height:48vh;overflow-y:auto}
+@media(max-width:650px){.filtros{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px}.leyenda{font-size:11px;max-width:200px}.panel{max-height:42vh}}
+/* pantallas: inicio, descarga, modelo */
+.pag{position:absolute;inset:0;z-index:6;background:var(--tierra);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pag[hidden]{display:none}
+.pag-in{max-width:880px;margin:0 auto;padding:16px 16px 40px}
+.portada{background:var(--campo-osc);color:#fff;padding:34px 20px 30px}
+.portada div{max-width:848px;margin:0 auto;display:flex;gap:16px;align-items:center}
+.portada svg{flex:none}
+.portada h1{font-size:34px;line-height:1.05;margin:0;letter-spacing:-.02em}
+.portada p{margin:6px 0 0;font-size:16px;line-height:1.35;opacity:.92;max-width:34ch}
+.pregunta{font-size:19px;font-weight:700;margin:22px 2px 12px}
+.puertas{display:grid;gap:12px}
+.puerta{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--papel);border:2px solid transparent;border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(34,48,31,.18);min-height:92px}
+.puerta:active{border-color:var(--campo-osc)}
+.puerta .ico{flex:none;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:var(--campo-claro);color:var(--campo-osc)}
+.puerta strong{display:block;font-size:18.5px;line-height:1.2}
+.puerta span{display:block;font-size:15px;line-height:1.35;color:var(--tinta-2);margin-top:3px}
+.aviso-sim{font-size:14px;color:var(--tinta-2);margin:20px 2px 0;line-height:1.4}
+.pag-cab{position:sticky;top:0;z-index:1;background:var(--tierra);display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--raya)}
+.pag-cab .inicio{box-shadow:none}
+.pag-cab h2{font-size:20px;margin:0;line-height:1.15}
+.caja{background:var(--papel);border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(34,48,31,.18);margin-top:14px}
+.caja h3{font-size:17px;margin:0 0 4px}
+.caja>p{font-size:15px;line-height:1.4;color:var(--tinta-2);margin:0 0 12px}
+.elige{font-size:14px;font-weight:600;color:var(--tinta-2);margin:16px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1.5px solid #C9C6B8;background:var(--papel);font-size:15.5px}
+.chip[aria-pressed="true"]{background:var(--campo-osc);border-color:var(--campo-osc);color:#fff;font-weight:600}
+.bajar{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:60px;border:0;border-radius:12px;background:var(--campo-osc);color:#fff;padding:10px 16px;margin-top:10px}
+.bajar strong{display:block;font-size:16px;line-height:1.2}
+.bajar span{display:block;font-size:13.5px;opacity:.9;margin-top:2px}
+.bajar svg{flex:none}
+.bajar:disabled{background:#D8D6CC;color:#6E6C62;cursor:default}
+.bajar.sec{background:var(--campo-claro);color:#173F16;border:1.5px solid var(--campo-osc)}
+.estado-dl{overflow-wrap:anywhere;font-size:14.5px;line-height:1.4;margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--campo-claro);color:#173F16}
+.estado-dl:empty{display:none}
+.vista{overflow-x:auto;margin-top:12px;border:1px solid var(--raya);border-radius:10px}
+.vista table{border-collapse:collapse;font-size:13.5px;white-space:nowrap;width:100%}
+.vista th,.vista td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--raya)}
+.vista th{background:#F3F1E8;font-weight:600;color:var(--tinta-2)}
+.vista th:nth-child(-n+4),.vista td:nth-child(-n+4){text-align:left}
+.vista tr:last-child td{border-bottom:0}
+.pend{display:inline-block;font-size:13.5px;font-weight:600;padding:4px 10px;border-radius:12px;background:#F6E7C1;color:#6B4E07;margin-bottom:10px}
+.ficha{display:grid;grid-template-columns:1fr;margin:0}
+.ficha div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--raya);font-size:15px}
+.ficha dt{color:var(--tinta-2)}
+.ficha dd{margin:0;font-weight:600;text-align:right}
+@media (min-width:760px){
+  .puertas{grid-template-columns:repeat(3,1fr)}
+  .puerta{flex-direction:column;align-items:flex-start;min-height:190px}
+  .portada{padding:52px 20px 44px}.portada h1{font-size:44px}
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div id="app">
+  <div id="mapa" aria-label="Mapa interactivo de Agrocebada"></div>
+  <div class="arriba"><div class="fila1"><button class="inicio" data-ir="inicio">Inicio</button><div class="marca"><h1>Agrocebada</h1><p>Parcelas reales</p></div></div>
+   <div class="filtros">
+    <label>Estado<select id="estado"><option value="">Todos</option><option>Hidalgo</option><option>Puebla</option><option>Tlaxcala</option></select></label>
+    <label>Municipio<select id="municipio"><option value="">Todos</option></select></label>
+    <label>Conjunto<select id="conjunto"><option value="">Todos</option><option value="ENTRENAMIENTO">Entrenamiento</option><option value="PREDICCION">Predicción</option></select></label>
+    <label>Identificador<div class="busqueda"><input type="search" id="id" placeholder="AGC_003"><button id="buscar" aria-label="Buscar">⌕</button></div></label>
+    <div class="acciones"><span class="contador" id="contador">Mostrando 0 de 197 parcelas</span><button id="limpiar">Limpiar filtros</button></div>
+   </div></div>
+  <div id="aviso" role="status">Datos de las parcelas pendientes de publicar</div>
+  <div class="leyenda"><strong>Conjuntos</strong><p><i style="background:#2B6629"></i>Entrenamiento: rendimiento observado (138)</p><p><i style="background:#3D3FA6"></i>Predicción: estimada por el modelo (59)</p></div>
+  <section class="panel" id="panel" hidden></section>
+  <section class="pag" id="p-inicio">
+    <div class="portada"><div><svg width="46" height="60" viewBox="0 0 26 34" aria-hidden="true"><path d="M13 33V13" stroke="#E9D08A" stroke-width="2" stroke-linecap="round"/><g fill="#D9A32B"><ellipse cx="13" cy="5" rx="3.2" ry="5"/><ellipse cx="7.5" cy="12" rx="3" ry="5" transform="rotate(-24 7.5 12)"/><ellipse cx="18.5" cy="12" rx="3" ry="5" transform="rotate(24 18.5 12)"/><ellipse cx="7.5" cy="20" rx="3" ry="5" transform="rotate(-24 7.5 20)"/><ellipse cx="18.5" cy="20" rx="3" ry="5" transform="rotate(24 18.5 20)"/></g></svg><span><h1>Agrocebada</h1><p>Parcelas de cebada en Puebla, Tlaxcala e Hidalgo</p></span></div></div>
+    <div class="pag-in">
+      <p class="pregunta">¿Qué quieres hacer?</p>
+      <div class="puertas">
+        <button class="puerta" data-ir="mapa"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg></i><div><strong>Visualización de datos</strong><span>Mira las parcelas en el mapa y filtra por estado, municipio y dato.</span></div></button>
+        <button class="puerta" data-ir="descarga"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><div><strong>Descarga de datos</strong><span>Baja la información de las parcelas en un archivo para Excel.</span></div></button>
+        <button class="puerta" data-ir="modelo"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 16c3-1 4-7 6-7s2 3 6-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></i><div><strong>Modelo matemático</strong><span>El modelo estadístico de la estimación y la descarga de sus resultados.</span></div></button>
+      </div>
+      <p class="aviso-sim">Esto es un prototipo. Los municipios son reales; las parcelas y todos sus datos son simulados.</p>
+    </div>
+  </section>
+
+  <section class="pag" id="p-descarga" hidden><div class="pag-cab"><button class="inicio" data-ir="inicio">Inicio</button><h2>Descarga de datos</h2></div><div class="pag-in"><div class="caja"><h3>Datos reales</h3><p>Las descargas estarán disponibles cuando se publique el GeoJSON verificado; no se utilizan archivos de prueba.</p><a id="descargar" href="data/parcelas_agrocebada.geojson" download hidden>Descargar parcelas reales (GeoJSON)</a><p id="dl-info">Datos de las parcelas pendientes de publicar</p></div></div></section>
+  <section class="pag" id="p-modelo" hidden>
+    <div class="pag-cab"><button class="inicio" data-ir="inicio">Inicio</button><h2>Modelo matemático</h2></div>
+    <div class="pag-in">
+      <div class="caja">
+        <span class="pend">Pendiente de cargar</span>
+        <h3>Modelo estadístico</h3>
+        <p>Aquí va a ir el modelo que se ejecutó por programación: qué estima, con qué datos se entrenó y qué tan bien acierta.</p>
+        <dl class="ficha">
+          <div><dt>Modelo</dt><dd>Por definir</dd></div>
+          <div><dt>Qué estima</dt><dd>Por definir</dd></div>
+          <div><dt>Periodo de la estimación</dt><dd>Abril a octubre</dd></div>
+          <div><dt>Parcelas de entrenamiento</dt><dd>138</dd></div>
+          <div><dt>Parcelas de predicción</dt><dd>59</dd></div>
+        </dl>
+      </div>
+      <div class="caja">
+        <h3>Descarga de resultados según el modelo</h3>
+        <p>Cuando el modelo esté cargado, aquí se bajan sus resultados para las 59 parcelas de predicción.</p>
+        <button class="bajar" disabled><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Descargar resultados del modelo</strong><span>Todavía no hay resultados cargados</span></div></button>
+        <button class="bajar sec" data-dl="plantilla"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Descargar plantilla de resultados</strong><span>Las 59 parcelas de predicción, con la columna del resultado vacía</span></div></button>
+        <p class="estado-dl" id="md-msg" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id),meses=[['abr','Abril'],['may','Mayo'],['jun','Junio'],['jul','Julio'],['ago','Agosto'],['sep','Septiembre'],['oct','Octubre']];
+let mapa=L.map('mapa').setView([19.5,-98.5],8),capa=L.layerGroup().addTo(mapa),datos=[],listos=false,ref=new Map();
+let filtros={estado:'',municipio:'',conjunto:''};
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa);
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ver=x=>x===null||x===undefined||x===''?'sin dato':String(x);
+function fijo(x){if(x==null)return 'sin dato';const t=String(x),m=/^(-?\d+)(?:\.(\d+))?$/.exec(t);return m&&(!m[2]||m[2].length<=4)?m[1]+'.'+(m[2]||'').padEnd(4,'0'):t}
+function ficha(p){let h='<div class="ficha"><h3>'+esc(p.id)+'</h3><p><b>Municipio:</b> '+esc(p.municipio)+'<br><b>Estado:</b> '+esc(p.estado)+'<br><b>Conjunto:</b> '+esc(p.conjunto)+'<br><b>Área:</b> '+esc(ver(p.area_ha))+' ha</p>';
+ if(p.conjunto==='ENTRENAMIENTO')h+='<p><b>Rendimiento observado:</b> '+esc(ver(p.rend_obs))+' t/ha (dato de FIRA)<br><b>Promedio de su municipio:</b> '+esc(ver(p.prom_mun))+' t/ha</p>';
+ else h+='<p><b>Rendimiento estimado:</b> '+esc(fijo(p.rend_pred))+' t/ha = promedio de su municipio '+esc(fijo(p.prom_mun))+' + corrección por temperatura '+esc(fijo(p.corr_temp))+'</p><p class="nota">El rendimiento real de esta parcela lo resguarda FIRA para la evaluación.</p>';
+ h+='<h4>Temperatura máxima mensual de 2025 (°C)</h4><table><tr><th>Mes</th><th>°C</th></tr>';for(const [k,m] of meses)h+='<tr><td>'+m+'</td><td>'+esc(ver(p['tmax_'+k]))+'</td></tr>';return h+'</table></div>'}
+function mostrar(p){$('panel').innerHTML='<button id="x" aria-label="Cerrar">×</button>'+ficha(p);$('panel').hidden=false;$('x').onclick=()=>{$('panel').hidden=true;mapa.closePopup()}}
+function municipios(){const arr=[...new Set(datos.filter(f=>!filtros.estado||f.properties.estado===filtros.estado).map(f=>f.properties.municipio))].sort((a,b)=>a.localeCompare(b,'es'));const elegido=filtros.municipio;$('municipio').replaceChildren(new Option('Todos',''),...arr.map(x=>new Option(x,x)));filtros.municipio=arr.includes(elegido)?elegido:'';$('municipio').value=filtros.municipio}
+function dibujar(centrar=true){capa.clearLayers();ref.clear();$('panel').hidden=true;const bounds=L.latLngBounds();let n=0;
+ for(const f of datos){const p=f.properties;if(filtros.estado&&p.estado!==filtros.estado||filtros.municipio&&p.municipio!==filtros.municipio||filtros.conjunto&&p.conjunto!==filtros.conjunto)continue;
+  const color=p.conjunto==='ENTRENAMIENTO'?'#2B6629':'#3D3FA6';const poly=L.geoJSON(f,{style:{color,fillColor:color,fillOpacity:.25,weight:2}}),dot=L.circleMarker([p.lat,p.lon],{radius:5,color:'#fff',weight:1,fillColor:color,fillOpacity:1});
+  poly.bindPopup(()=>ficha(p));dot.bindPopup(()=>ficha(p));poly.on('click',()=>mostrar(p));dot.on('click',()=>mostrar(p));capa.addLayer(poly);capa.addLayer(dot);ref.set(p.id,{poly,dot});bounds.extend(poly.getBounds());n++}
+ $('contador').textContent='Mostrando '+n+' de 197 parcelas';if(centrar&&bounds.isValid())mapa.fitBounds(bounds,{padding:[30,30],maxZoom:15})}
+function buscar(){const id=$('id').value.trim().toUpperCase();if(!listos)return;const f=datos.find(f=>f.properties.id.toUpperCase()===id);if(!f){$('aviso').hidden=false;$('aviso').textContent='No se encontró '+id;return}filtros={estado:'',municipio:'',conjunto:''};$('estado').value='';$('conjunto').value='';municipios();dibujar(false);$('aviso').hidden=true;let r=ref.get(f.properties.id);mapa.fitBounds(r.poly.getBounds(),{padding:[45,45],maxZoom:17});r.dot.openPopup();mostrar(f.properties)}
+function verificar(j){if(j.type!=='FeatureCollection'||!Array.isArray(j.features))throw Error('GeoJSON inválido');const a=j.features;if(a.length!==197||a.filter(f=>f.properties?.conjunto==='ENTRENAMIENTO').length!==138||a.filter(f=>f.properties?.conjunto==='PREDICCION').length!==59)throw Error('Conteos distintos de 197/138/59');
+ const ids=new Set(),estados=new Set(),munis=new Set();for(const f of a){let p=f.properties;if(!p||typeof p.id!=='string'||ids.has(p.id))throw Error('ID ausente o repetido');ids.add(p.id);if(!['Hidalgo','Puebla','Tlaxcala'].includes(p.estado)||!p.municipio)throw Error('Estado o municipio inválido');estados.add(p.estado);munis.add(p.estado+'|'+p.municipio);if(p.estado==='Puebla'&&p.municipio!=='Chignahuapan')throw Error('Municipio inesperado en Puebla');if(!['Polygon','MultiPolygon'].includes(f.geometry?.type))throw Error('Polígono no válido');if(typeof p.lat!=='number'||typeof p.lon!=='number')throw Error('Centro ausente');if(p.conjunto==='ENTRENAMIENTO'&&(p.rend_obs==null||p.rend_pred!==null)||p.conjunto==='PREDICCION'&&(p.rend_obs!==null||p.rend_pred==null))throw Error('Rendimiento incompatible')}
+ if(estados.size!==3||munis.size!==9)throw Error('Número de estados o municipios incorrecto');for(const [id,num] of [['AGC_003','3.0425'],['AGC_120','2.5020'],['AGC_130','4.6384']]){const p=a.find(f=>f.properties.id===id)?.properties;if(!p||fijo(p.rend_pred)!==num)throw Error('Valor de comprobación incorrecto '+id)}return a}
+async function cargar(){try{const r=await fetch('data/parcelas_agrocebada.geojson',{cache:'no-store'});if(r.status===404)return;if(!r.ok)throw Error('HTTP '+r.status);datos=verificar(await r.json());listos=true;municipios();dibujar();$('aviso').hidden=true;$('descargar').hidden=false;$('dl-info').textContent='Archivo verificado: 197 parcelas.'}catch(e){console.error(e);$('aviso').textContent='No se pudieron mostrar datos verificados: '+e.message}}
+$('estado').onchange=e=>{filtros.estado=e.target.value;filtros.municipio='';municipios();dibujar()};$('municipio').onchange=e=>{filtros.municipio=e.target.value;dibujar()};$('conjunto').onchange=e=>{filtros.conjunto=e.target.value;dibujar()};$('buscar').onclick=buscar;$('id').onkeydown=e=>{if(e.key==='Enter')buscar()};$('limpiar').onclick=()=>{filtros={estado:'',municipio:'',conjunto:''};$('estado').value='';$('conjunto').value='';$('id').value='';municipios();dibujar();$('aviso').hidden=listos};
+function ir(p){for(const x of ['inicio','descarga','modelo'])$('p-'+x).hidden=x!==p;if(p==='mapa')setTimeout(()=>mapa.invalidateSize(),10)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ir]');if(b)ir(b.dataset.ir);if(e.target.closest('[data-dl="plantilla"]'))$('md-msg').textContent='Plantilla pendiente de datos reales; no se descargan identificadores simulados.'});
+cargar();
+</script>
+</body>
+</html>
