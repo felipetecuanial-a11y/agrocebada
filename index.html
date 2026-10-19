@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Agrocebada: mapa de parcelas (v4)</title>
+<title>AgroCebada: mapa de parcelas (v4)</title>
 <style>
 :root{
   --agua:#B5D3E3; --agua-tinta:#5E8AA3;
@@ -83,8 +83,8 @@ button:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
 </head>
 <body>
 <div id="app">
-  <div id="mapa" aria-label="Mapa interactivo de Agrocebada"></div>
-  <div class="arriba"><div class="fila1"><button class="inicio" data-ir="inicio">Inicio</button><div class="marca"><h1>Agrocebada</h1><p>Parcelas reales</p></div></div>
+  <div id="mapa" aria-label="Mapa interactivo de AgroCebada"></div>
+  <div class="arriba"><div class="fila1"><button class="inicio" data-ir="inicio">Inicio</button><div class="marca"><h1>AgroCebada</h1><p>Parcelas reales</p></div></div>
    <div class="filtros">
     <label>Estado<select id="estado"><option value="">Todos</option><option>Hidalgo</option><option>Puebla</option><option>Tlaxcala</option></select></label>
     <label>Municipio<select id="municipio"><option value="">Todos</option></select></label>
@@ -96,15 +96,15 @@ button:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
   <div class="leyenda"><strong>Conjuntos</strong><p><i style="background:#2B6629"></i>Entrenamiento: rendimiento observado (138)</p><p><i style="background:#3D3FA6"></i>Predicción: estimada por el modelo (59)</p></div>
   <section class="panel" id="panel" hidden></section>
   <section class="pag" id="p-inicio">
-    <div class="portada"><div><svg width="46" height="60" viewBox="0 0 26 34" aria-hidden="true"><path d="M13 33V13" stroke="#E9D08A" stroke-width="2" stroke-linecap="round"/><g fill="#D9A32B"><ellipse cx="13" cy="5" rx="3.2" ry="5"/><ellipse cx="7.5" cy="12" rx="3" ry="5" transform="rotate(-24 7.5 12)"/><ellipse cx="18.5" cy="12" rx="3" ry="5" transform="rotate(24 18.5 12)"/><ellipse cx="7.5" cy="20" rx="3" ry="5" transform="rotate(-24 7.5 20)"/><ellipse cx="18.5" cy="20" rx="3" ry="5" transform="rotate(24 18.5 20)"/></g></svg><span><h1>Agrocebada</h1><p>Parcelas de cebada en Puebla, Tlaxcala e Hidalgo</p></span></div></div>
+    <div class="portada"><div><svg width="46" height="60" viewBox="0 0 26 34" aria-hidden="true"><path d="M13 33V13" stroke="#E9D08A" stroke-width="2" stroke-linecap="round"/><g fill="#D9A32B"><ellipse cx="13" cy="5" rx="3.2" ry="5"/><ellipse cx="7.5" cy="12" rx="3" ry="5" transform="rotate(-24 7.5 12)"/><ellipse cx="18.5" cy="12" rx="3" ry="5" transform="rotate(24 18.5 12)"/><ellipse cx="7.5" cy="20" rx="3" ry="5" transform="rotate(-24 7.5 20)"/><ellipse cx="18.5" cy="20" rx="3" ry="5" transform="rotate(24 18.5 20)"/></g></svg><span><h1>AgroCebada</h1><p>Parcelas de cebada en Puebla, Tlaxcala e Hidalgo</p></span></div></div>
     <div class="pag-in">
       <p class="pregunta">¿Qué quieres hacer?</p>
       <div class="puertas">
-        <button class="puerta" data-ir="mapa"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg></i><div><strong>Visualización de datos</strong><span>Mira las parcelas en el mapa y filtra por estado, municipio y dato.</span></div></button>
+        <button class="puerta" data-ir="mapa"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="currentColor"/></svg></i><div><strong>Visualización de datos</strong><span>Mira las parcelas en el mapa y filtra por estado, municipio y conjunto.</span></div></button>
         <button class="puerta" data-ir="descarga"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><div><strong>Descarga de datos</strong><span>Baja la información de las parcelas en un archivo para Excel.</span></div></button>
         <button class="puerta" data-ir="modelo"><i class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 16c3-1 4-7 6-7s2 3 6-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></i><div><strong>Modelo matemático</strong><span>El modelo estadístico de la estimación y la descarga de sus resultados.</span></div></button>
       </div>
-      <p class="aviso-sim">Esto es un prototipo. Los municipios son reales; las parcelas y todos sus datos son simulados.</p>
+      
     </div>
   </section>
 
@@ -140,6 +140,7 @@ button:focus-visible{outline:3px solid var(--cebada);outline-offset:2px}
 "use strict";
 const $=id=>document.getElementById(id),meses=[['abr','Abril'],['may','Mayo'],['jun','Junio'],['jul','Julio'],['ago','Agosto'],['sep','Septiembre'],['oct','Octubre']];
 let mapa=L.map('mapa').setView([19.5,-98.5],8),capa=L.layerGroup().addTo(mapa),datos=[],listos=false,ref=new Map();
+mapa.zoomControl.setPosition('topright');
 let filtros={estado:'',municipio:'',conjunto:''};
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa);
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -162,8 +163,30 @@ function verificar(j){if(j.type!=='FeatureCollection'||!Array.isArray(j.features
  if(estados.size!==3||munis.size!==9)throw Error('Número de estados o municipios incorrecto');for(const [id,num] of [['AGC_003','3.0425'],['AGC_120','2.5020'],['AGC_130','4.6384']]){const p=a.find(f=>f.properties.id===id)?.properties;if(!p||fijo(p.rend_pred)!==num)throw Error('Valor de comprobación incorrecto '+id)}return a}
 async function cargar(){try{const r=await fetch('data/parcelas_agrocebada.geojson',{cache:'no-store'});if(r.status===404)return;if(!r.ok)throw Error('HTTP '+r.status);datos=verificar(await r.json());listos=true;municipios();dibujar();$('aviso').hidden=true;$('descargar').hidden=false;$('dl-info').textContent='Archivo verificado: 197 parcelas.'}catch(e){console.error(e);$('aviso').textContent='No se pudieron mostrar datos verificados: '+e.message}}
 $('estado').onchange=e=>{filtros.estado=e.target.value;filtros.municipio='';municipios();dibujar()};$('municipio').onchange=e=>{filtros.municipio=e.target.value;dibujar()};$('conjunto').onchange=e=>{filtros.conjunto=e.target.value;dibujar()};$('buscar').onclick=buscar;$('id').onkeydown=e=>{if(e.key==='Enter')buscar()};$('limpiar').onclick=()=>{filtros={estado:'',municipio:'',conjunto:''};$('estado').value='';$('conjunto').value='';$('id').value='';municipios();dibujar();$('aviso').hidden=listos};
-function ir(p){for(const x of ['inicio','descarga','modelo'])$('p-'+x).hidden=x!==p;if(p==='mapa')setTimeout(()=>mapa.invalidateSize(),10)}
+function ir(p){for(const x of ['inicio','descarga','modelo'])$('p-'+x).hidden=x!==p;if(p==='mapa')setTimeout(()=>{mapa.invalidateSize();acomodarZoom()},10)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-ir]');if(b)ir(b.dataset.ir);if(e.target.closest('[data-dl="plantilla"]'))$('md-msg').textContent='Plantilla pendiente de datos reales; no se descargan identificadores simulados.'});
+/* Mantener el zoom separado del Inicio, filtros, ficha y leyenda también en móvil. */
+function acomodarZoom(){
+ const control=mapa.zoomControl.getContainer(),anclaje=control.parentElement;
+ if(!anclaje)return;
+ const contenedor=$('mapa').getBoundingClientRect();
+ const barra=document.querySelector('.arriba').getBoundingClientRect();
+ const choca=(a,b)=>a.left<b.right+8&&a.right>b.left-8&&a.top<b.bottom+8&&a.bottom>b.top-8;
+ anclaje.style.top='0px';
+ control.style.visibility='visible';
+ let r=control.getBoundingClientRect();
+ if(choca(r,barra)){
+  anclaje.style.top=Math.ceil(barra.bottom-contenedor.top+12)+'px';
+  r=control.getBoundingClientRect();
+ }
+ const panel=$('panel'),leyenda=document.querySelector('.leyenda');
+ if(r.bottom>contenedor.bottom-8||choca(r,leyenda.getBoundingClientRect())||(!panel.hidden&&choca(r,panel.getBoundingClientRect()))){
+  control.style.visibility='hidden';
+ }
+}
+window.addEventListener('resize',()=>requestAnimationFrame(acomodarZoom));
+new MutationObserver(()=>requestAnimationFrame(acomodarZoom)).observe($('panel'),{attributes:true,attributeFilter:['hidden']});
+requestAnimationFrame(acomodarZoom);
 cargar();
 </script>
 </body>
