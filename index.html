@@ -71,6 +71,8 @@ h3{font-size:17px;margin:0 0 6px}
 .tile .va.rango{font-size:24px}
 .tile .va small{font-size:15px;font-weight:600;color:var(--tinta-2);margin-left:4px}
 .tile .su{font-size:13px;color:var(--tinta-2)}
+.tile .cmp{margin-top:8px;padding-top:8px;border-top:1px solid var(--raya);font-size:13px;color:var(--tinta-2)}
+.tile .cmp b{color:var(--tinta);font-weight:650;font-variant-numeric:tabular-nums}
 .puertas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .puerta{display:block;background:var(--papel);border-radius:16px;padding:16px;box-shadow:var(--sombra-2);text-decoration:none;color:var(--tinta);border:2px solid transparent}
 .puerta:hover{border-color:var(--campo-osc)}
@@ -109,7 +111,7 @@ h3{font-size:17px;margin:0 0 6px}
   .filtros-mapa:not(.abierto)>label{display:none}
   .busca{grid-column:1/-1}
   .leyenda{font-size:11.5px;max-width:165px;padding:8px 10px}
-  .leyenda .extra{display:none}
+  .leyenda .extra p{margin:3px 0}
   .leaflet-control-zoom{display:none}
   .panel{max-height:52%;padding:14px}
 }
@@ -278,7 +280,6 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
 .ec-donde dt .katex{font-style:normal}
 .ec-donde dd{margin:0}
 .ec-ref{font-size:13px;color:var(--tinta-2);margin:10px 0 0}
-.pendiente{display:inline-block;font-size:12px;font-weight:700;color:#7A5A0E;background:#FFF4D6;border:1px solid var(--cebada);border-radius:999px;padding:1px 8px;margin-right:4px}
 .ecuaciones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .ecuaciones .ecuacion{margin:0}
 .ecuaciones .ec-formula{font-size:17px}
@@ -297,6 +298,10 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
 /* descargas en espera y aviso */
 .toast{position:fixed;z-index:60;left:50%;bottom:24px;transform:translateX(-50%);background:#22301F;color:#fff;border-radius:12px;padding:12px 16px;font-size:14.5px;box-shadow:var(--sombra);max-width:calc(100vw - 32px);text-align:center}
 .docs .caja h3{margin-top:2px}
+.docs .caja.doc{margin:0;display:flex;flex-direction:column}
+.doc-lista{margin:4px 0 14px;padding-left:22px;font-size:14.5px}
+.doc-lista li{margin:3px 0}
+.docs .caja.doc .boton{margin-top:auto;align-self:flex-start}
 </style>
 </head>
 <body>
@@ -321,7 +326,7 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
   </div></div>
   <div class="ancho">
     <div class="tiles">
-      <div class="tile"><div class="et">Parcelas</div><div class="va">197</div><div class="su">138 con rendimiento observado · 59 estimadas</div></div>
+      <div class="tile"><div class="et">Parcelas</div><div class="va">197</div><div class="su">138 con rendimiento observado y 59 estimadas</div></div>
       <div class="tile"><div class="et">Estimaciones de las 59</div><div class="va rango" id="i-rango">…</div><div class="su">t/ha, de la más baja a la más alta</div></div>
       <div class="tile"><div class="et">Error de validación</div><div class="va">0.4948<small>t/ha</small></div><div class="su">RMSE (raíz del error cuadrático medio); el promedio municipal da 0.5126</div></div>
       <div class="tile"><div class="et">Frente al promedio municipal</div><div class="va">10 de 10</div><div class="su">repartos con menor error, y 10 de 10 en la confirmación</div></div>
@@ -435,7 +440,7 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
     <p>El coeficiente de cada mes se aprendió con <b>ElasticNet</b>, una regresión lineal con penalización que deja en cero los meses que no aportan y reduce los demás. Primero, a cada parcela se le resta el promedio de su municipio, tanto al rendimiento como a la temperatura, y las diferencias de temperatura se estandarizan:</p>
     <figure class="ecuacion" id="ec-diferencias">
       <figcaption class="ec-titulo">Diferencias contra el municipio y coeficiente por grado</figcaption>
-      <div class="ec-formula" data-tex="r_i = y_i-\bar{y}_m \qquad z_{i,k}=\frac{x_{i,k}-\bar{x}_{m,k}}{s_k} \qquad \beta_k=\frac{b_k}{s_k}"><var>r</var><sub><var>i</var></sub> = <var>y</var><sub><var>i</var></sub> − <var>ȳ</var><sub><var>m</var></sub> &nbsp;·&nbsp; <var>z</var><sub><var>i,k</var></sub> = (<var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub>) ⁄ <var>s</var><sub><var>k</var></sub> &nbsp;·&nbsp; <var>β</var><sub><var>k</var></sub> = <var>b</var><sub><var>k</var></sub> ⁄ <var>s</var><sub><var>k</var></sub></div>
+      <div class="ec-formula" data-tex="r_i = y_i-\bar{y}_m \qquad z_{i,k}=\frac{x_{i,k}-\bar{x}_{m,k}}{s_k} \qquad \beta_k=\frac{b_k}{s_k}"><var>r</var><sub><var>i</var></sub> = <var>y</var><sub><var>i</var></sub> − <var>ȳ</var><sub><var>m</var></sub> &emsp;&emsp; <var>z</var><sub><var>i,k</var></sub> = (<var>x</var><sub><var>i,k</var></sub> − <var>x̄</var><sub><var>m,k</var></sub>) ⁄ <var>s</var><sub><var>k</var></sub> &emsp;&emsp; <var>β</var><sub><var>k</var></sub> = <var>b</var><sub><var>k</var></sub> ⁄ <var>s</var><sub><var>k</var></sub></div>
       <dl class="ec-donde">
         <dt data-tex="r_i">rᵢ</dt><dd>Rendimiento de la parcela menos el promedio de su municipio.</dd>
         <dt data-tex="z_{i,k}">zᵢ,ₖ</dt><dd>Diferencia de temperatura del mes <i>k</i> contra su municipio, en desviaciones estándar.</dd>
@@ -454,7 +459,7 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
         <dt data-tex="\rho">ρ</dt><dd>Mezcla entre las dos penalizaciones: valor absoluto (puede dejar meses en cero) y cuadrado (reparte el peso entre meses parecidos).</dd>
       </dl>
       <p class="nota" style="margin:8px 0 0">Se eligieron con validación interna en 5 partes, solo con las 138 parcelas, entre 3 mezclas (0.1, 0.5 y 0.9) y 40 valores de α: <span id="m-params">…</span>.</p>
-      <p class="ec-ref"><b>Referencia:</b> Zou y Hastie (2005), método ElasticNet. <span class="pendiente">Referencia pendiente</span> de la biblioteca scikit-learn, que usa esta forma con α y ρ.</p>
+      <p class="ec-ref"><b>Referencia:</b> Zou y Hastie (2005), método ElasticNet.</p>
     </figure>
 
     <h2>Cómo se validó y se eligió</h2>
@@ -471,19 +476,16 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
         <figcaption class="ec-titulo">RMSE (raíz del error cuadrático medio)</figcaption>
         <div class="ec-formula" data-tex="\mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(y_i-\hat{y}_i\bigr)^{2}}">RMSE = √( (1/<var>n</var>) Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² )</div>
         <p class="ec-ref">Castiga más los errores grandes. Es el criterio principal para elegir el modelo.</p>
-        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
       </figure>
       <figure class="ecuacion" id="ec-mae">
         <figcaption class="ec-titulo">MAE (error absoluto medio)</figcaption>
         <div class="ec-formula" data-tex="\mathrm{MAE}=\frac{1}{n}\sum_{i=1}^{n}\bigl\lvert y_i-\hat{y}_i\bigr\rvert">MAE = (1/<var>n</var>) Σ |<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>|</div>
         <p class="ec-ref">El error promedio en t/ha, sin dar más peso a los errores grandes.</p>
-        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
       </figure>
       <figure class="ecuacion" id="ec-r2">
         <figcaption class="ec-titulo">R² (coeficiente de determinación)</figcaption>
         <div class="ec-formula" data-tex="R^{2}=1-\frac{\sum_{i}\bigl(y_i-\hat{y}_i\bigr)^{2}}{\sum_{i}\bigl(y_i-\bar{y}\bigr)^{2}}">R² = 1 − Σ (<var>y</var><sub><var>i</var></sub> − <var>ŷ</var><sub><var>i</var></sub>)² ⁄ Σ (<var>y</var><sub><var>i</var></sub> − <var>ȳ</var>)²</div>
         <p class="ec-ref">La parte de la variación del rendimiento que explica el modelo.</p>
-        <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Las Bases de FIRA piden esta métrica.</p>
       </figure>
     </div>
 
@@ -510,10 +512,10 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
     <h1>Resultados de la validación</h1>
     <p class="lead">Errores en parcelas que el modelo no vio al entrenar, en toneladas por hectárea (t/ha). Promedio de los repartos 42 a 51, con 5 partes por reparto.</p>
     <div class="tiles r">
-      <div class="tile"><div class="et">RMSE</div><div class="va">0.4948</div><div class="su">raíz del error cuadrático medio · promedio municipal: 0.5126</div></div>
-      <div class="tile"><div class="et">MAE</div><div class="va">0.3319</div><div class="su">error absoluto medio · promedio municipal: 0.3375</div></div>
-      <div class="tile"><div class="et">R²</div><div class="va">0.6596</div><div class="su">coeficiente de determinación · promedio municipal: 0.6346</div></div>
-      <div class="tile"><div class="et">Confirmación</div><div class="va">0.4933</div><div class="su">RMSE en los repartos 52 a 61 · promedio municipal: 0.5128</div></div>
+      <div class="tile"><div class="et">RMSE</div><div class="va">0.4948</div><div class="su">Raíz del error cuadrático medio</div><div class="cmp">Promedio municipal: <b>0.5126</b></div></div>
+      <div class="tile"><div class="et">MAE</div><div class="va">0.3319</div><div class="su">Error absoluto medio</div><div class="cmp">Promedio municipal: <b>0.3375</b></div></div>
+      <div class="tile"><div class="et">R²</div><div class="va">0.6596</div><div class="su">Coeficiente de determinación</div><div class="cmp">Promedio municipal: <b>0.6346</b></div></div>
+      <div class="tile"><div class="et">Confirmación</div><div class="va">0.4933</div><div class="su">RMSE (raíz del error cuadrático medio) en los repartos 52 a 61</div><div class="cmp">Promedio municipal: <b>0.5128</b></div></div>
       <div class="tile"><div class="et">Remuestreo</div><div class="va">99.05 %</div><div class="su">1,981 de 2,000 grupos de parcelas sacados al azar tienen menos error que con el promedio municipal; mejora del RMSE de 0.0023 a 0.0387 t/ha (intervalo de 95 %)</div></div>
     </div>
     <div class="caja" id="ventaja">
@@ -550,7 +552,6 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
             <dt data-tex="\bar{x},\ \bar{y}">x̄, ȳ</dt><dd>Sus promedios en las <span data-tex="n = 138">n = 138</span> parcelas de entrenamiento.</dd>
             <dt>Dentro</dt><dd>Se usa <span data-tex="x_i-\bar{x}_m">xᵢ − x̄ₘ</span> y <span data-tex="y_i-\bar{y}_m">yᵢ − ȳₘ</span>: cada valor menos el promedio de su municipio <i>m</i>.</dd>
           </dl>
-          <p class="ec-ref"><span class="pendiente">Referencia pendiente</span> Cálculo: cuaderno, sección 13 (gráfica de correlaciones).</p>
       </figure>
     </div>
     <figure class="figura corr-figura"><a href="img/g1_mapa_calor.png" target="_blank" rel="noopener"><img src="img/g1_mapa_calor.png" alt="Mapas de calor de la correlación entre el rendimiento y la temperatura máxima de cada mes, con todas las parcelas y dentro de cada municipio" loading="lazy"></a><figcaption>Correlaciones entre el rendimiento y la temperatura máxima de cada mes, y de los meses entre sí: con todas las parcelas juntas (izquierda) y dentro de cada municipio (derecha), 138 parcelas. Toca la imagen para verla en tamaño completo.</figcaption></figure>
@@ -575,8 +576,8 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
       <li><b>Revisa la huella del resultado.</b> Al final de la sección 12, la huella md5 del archivo de entrega debe ser <span class="huella">aaac4544eef073e3c9be958b250f7ad1</span>: así se comprueba que el resultado es idéntico al entregado.</li>
       <li><b>Descarga los resultados.</b> La sección 13 descarga las gráficas, la tabla de modelos y los archivos de predicciones.</li>
     </ol>
-    <h2>Qué hace cada sección</h2>
-    <p class="nota">Abre una sección para ver su explicación y su código, tal como están en el cuaderno.</p>
+    <h2>¿Qué hace cada sección?</h2>
+    <p class="nota">Abre una sección para ver su explicación y su código. El código está tal como en el cuaderno.</p>
     <div id="c-secciones"><p class="nota">Cargando el cuaderno…</p></div>
   </div>
 </section>
@@ -614,20 +615,23 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
 <script>
 "use strict";
 /* ===== Configuración que el equipo puede editar ===== */
-const DESCARGAS_ACTIVAS = false;           // false: los botones de descarga avisan "disponible próximamente" · true: descargan normalmente
-const DOCUMENTOS = [                       // tarjetas de la sección Documentos; con DESCARGAS_ACTIVAS en true, cada botón abre su PDF de docs/ (súbelo antes)
-  {nombre: "Informe", archivo: "docs/Informe_AgroCebada.pdf", texto: "Reporte técnico de la propuesta."},
-  {nombre: "Anexos", archivo: "docs/Anexos_AgroCebada.pdf", texto: "Tablas, figuras, predicciones y aportaciones del equipo."},
-  {nombre: "Bibliografía", archivo: "docs/Bibliografia_AgroCebada.pdf", texto: "Fuentes y relación de prompts de inteligencia artificial."}
+const DESCARGAS_ACTIVAS = true;            // true: los botones de descarga bajan su archivo · false: avisan "disponible próximamente"
+const DOCUMENTOS = [                       // tarjetas de la sección Documentos. Cuando subas cada PDF a docs/, escribe su ruta en "archivo",
+                                           // por ejemplo "docs/Informe_AgroCebada.pdf". Vacío = el botón avisa "disponible próximamente".
+  {nombre: "Informe", archivo: "", numerada: true, apartados: ["Introducción", "Justificación", "Objetivos", "Metodología", "Resultados y discusión", "Uso de la ciencia de datos en la inclusión financiera del sector agro", "Conclusiones"]},
+  {nombre: "Anexos", archivo: "", numerada: true, apartados: ["Localización y procedimiento", "Desempeño fuera de muestra", "Contexto municipal del SIAP (Servicio de Información Agroalimentaria y Pesquera)", "Predicciones finales: tabla de las 59 parcelas", "Participación de los integrantes"]},
+  {nombre: "Bibliografía", archivo: "", numerada: false, apartados: ["Referencias de las fuentes utilizadas: artículos científicos, documentos técnicos y fuentes de datos", "Relación de prompts de inteligencia artificial, con su propósito y la herramienta empleada"]}
 ];
-const VIDEO = "";                          // enlace al video (YouTube, Drive, etc.); vacío = la tarjeta avisa que estará disponible próximamente
+const VIDEO = "";                          // enlace de Google Drive al video, por ejemplo "https://drive.google.com/file/d/…/view"; se abre en otra pestaña.
+                                           // Vacío = el botón avisa "disponible próximamente".
+const VIDEO_APARTADOS = ["Funcionamiento del modelo predictivo", "Implementación de la solución tecnológica: esta página", "Duración máxima de 5 minutos"];
 const INTEGRANTES = [];                    // nombres del equipo, por ejemplo ["Nombre Apellido", "Nombre Apellido"]; vacío = no se muestran
 const COLAB = "https://colab.research.google.com/github/felipetecuanial-a11y/agrocebada/blob/main/codigo/AgroCebada_Cuaderno_Final.ipynb";
 
 /* ===== Utilidades ===== */
 const $ = id => document.getElementById(id);
 const MESES = [["abr", "Abril"], ["may", "Mayo"], ["jun", "Junio"], ["jul", "Julio"], ["ago", "Agosto"], ["sep", "Septiembre"], ["oct", "Octubre"]];
-const COLOR = {ent: "#2B6629", pred: "#3D3FA6", sube: "#2a78d6", baja: "#e34948", sel: "#D9A32B"};
+const COLOR = {ent: "#2B6629", pred: "#E8590C", sube: "#2a78d6", baja: "#e34948", sel: "#D9A32B"};   // pred: naranja fuerte para las parcelas estimadas
 const RAMPA = ["#94C47C", "#6BA956", "#478B37", "#2B6A22", "#174812"];   // rendimiento, de bajo a alto (paleta validada)
 const CORTES = [3.0, 3.5, 4.0, 4.5];
 const esc = x => String(x).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
@@ -1019,7 +1023,7 @@ function pintarResultados(c) {
     const fila = document.createElement("div"); fila.className = "fila-p"; fila.tabIndex = 0;
     const gana = m.lugar === 1, esRef = m === ref;
     fila.innerHTML = `<span class="n">${m.lugar}. ${gana || esRef ? "<b>" + esc(m.modelo) + "</b>" : esc(m.modelo)}</span><span class="pista"><span class="ref" style="left:${pos(ref.RMSE)}"></span><i class="${gana ? "gana" : esRef ? "refm" : ""}" style="left:${pos(m.RMSE)}"></i></span><span class="v">${gana || esRef ? Number(m.RMSE).toFixed(4) : ""}</span>`;
-    tipEn(fila, () => `<b>RMSE ${Number(m.RMSE).toFixed(5)} t/ha</b><br>${esc(m.modelo)}<br><span class="s">MAE ${Number(m.MAE).toFixed(5)} · R² ${Number(m["R²"]).toFixed(5)} · ${esRef ? "es la referencia" : "gana al promedio municipal en " + esc(m["gana vs. municipal"]) + " repartos"}</span>`);
+    tipEn(fila, () => `<b>RMSE: ${Number(m.RMSE).toFixed(5)} t/ha</b><br>${esc(m.modelo)}<br><span class="s">MAE: ${Number(m.MAE).toFixed(5)}<br>R²: ${Number(m["R²"]).toFixed(5)}<br>${esRef ? "Es la referencia" : "Gana al promedio municipal en " + esc(m["gana vs. municipal"]) + " repartos"}</span>`);
     g.appendChild(fila);
   }
   const eje = document.createElement("div"); eje.className = "eje-p";
@@ -1034,13 +1038,14 @@ function pintarResultados(c) {
 }
 
 /* ===== Código ===== */
+const sinEmojis = s => String(s || "").replace(/[\u{1F000}-\u{1FAFF}]\uFE0F?\s*/gu, "");   // quita emojis decorativos de las explicaciones; el código se muestra sin cambios
 function pintarCodigo(c) {
   $("c-huella").textContent = c.huella_md5; $("b-colab").href = COLAB;
   const cont = $("c-secciones"); cont.replaceChildren();
   const seccion = (titulo, html, codigo) => {
     const d = document.createElement("details"); d.className = "seccion-c";
-    const sm = document.createElement("summary"); sm.textContent = titulo; d.appendChild(sm);
-    const div = document.createElement("div"); div.innerHTML = html || "";
+    const sm = document.createElement("summary"); sm.textContent = sinEmojis(titulo); d.appendChild(sm);
+    const div = document.createElement("div"); div.innerHTML = sinEmojis(html);
     if (codigo) { const pre = document.createElement("pre"); pre.className = "codigo"; const code = document.createElement("code"); code.textContent = codigo; pre.appendChild(code); div.appendChild(pre); }
     d.appendChild(div); cont.appendChild(d);
   };
@@ -1061,12 +1066,20 @@ function pintarDatos(a) {
 }
 
 /* ===== Documentos ===== */
+function tarjetaDoc(nombre, apartados, numerada, boton) {
+  const t = numerada ? "ol" : "ul";
+  return `<div class="caja doc"><h3>${esc(nombre)}</h3><${t} class="doc-lista">${apartados.map(x => `<li>${esc(x)}</li>`).join("")}</${t}>${boton}</div>`;
+}
 function pintarDocumentos() {
   const lista = $("docs-lista"); lista.replaceChildren();
   for (const d of DOCUMENTOS) {
-    lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>${esc(d.nombre)}</h3><p class="nota">${esc(d.texto)}</p><a class="boton borde descarga" href="${esc(d.archivo)}" target="_blank" rel="noopener" data-aviso="El documento estará disponible próximamente.">Abrir el PDF</a></div>`);
+    lista.insertAdjacentHTML("beforeend", tarjetaDoc(d.nombre, d.apartados, d.numerada,
+      `<a class="boton borde" href="${esc(d.archivo || "#documentos")}" target="_blank" rel="noopener" data-doc="${esc(d.archivo)}">Abrir el PDF</a>`));
   }
-  lista.insertAdjacentHTML("beforeend", `<div class="caja" style="margin:0"><h3>Video</h3><p class="nota">Demostración del modelo y de esta página (máximo 5 minutos).</p><a class="boton borde" id="b-video" href="${esc(VIDEO || "#documentos")}" target="_blank" rel="noopener">Ver el video</a></div>`);
+  lista.insertAdjacentHTML("beforeend", tarjetaDoc("Video", VIDEO_APARTADOS, false,
+    `<a class="boton borde" id="b-video" href="${esc(VIDEO || "#documentos")}" target="_blank" rel="noopener">Ver el video en Google Drive</a>`));
+  // Sin PDF todavía (o con DESCARGAS_ACTIVAS en false): el botón avisa y no abre nada
+  lista.querySelectorAll("a[data-doc]").forEach(a => a.onclick = e => { if (!a.dataset.doc || !DESCARGAS_ACTIVAS) { e.preventDefault(); aviso("El documento estará disponible próximamente."); } });
   $("b-video").onclick = e => { if (!VIDEO) { e.preventDefault(); aviso("El video estará disponible próximamente."); } };
   $("equipo").innerHTML = INTEGRANTES.map(x => `<li>${esc(x)}</li>`).join("");
 }

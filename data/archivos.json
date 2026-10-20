@@ -79,36 +79,6 @@
    "contiene": "Los errores de los 43 modelos: RMSE (raíz del error cuadrático medio), MAE (error absoluto medio), R² (coeficiente de determinación), estabilidad entre repartos, cuántos repartos le ganan al promedio municipal, confirmación y remuestreo.",
    "uso": "Con esta tabla el cuaderno elige al ganador, con la regla fijada antes de correr.",
    "origen": "Secciones 7 a 10 del cuaderno, misma corrida."
-  },
-  {
-   "grupo": "Datos de esta página",
-   "archivo": "parcelas_agrocebada.geojson",
-   "ruta": "data/parcelas_agrocebada.geojson",
-   "bytes": 336085,
-   "huella_md5": "a5bc5cfeb12ab961412d8fadb1576421",
-   "contiene": "Los polígonos de las 197 parcelas con su conjunto, área, rendimiento observado o estimado, promedio de su municipio, corrección por temperatura y temperatura máxima mensual de abril a octubre de 2025.",
-   "uso": "Alimenta el mapa y las fichas de las parcelas.",
-   "origen": "Combina la capa de parcelas y el archivo de FIRA, la tabla maestra y el archivo de entrega, sin cambiar sus valores. La temperatura se redondea a 2 decimales para mostrarla."
-  },
-  {
-   "grupo": "Datos de esta página",
-   "archivo": "parcelas_agrocebada.csv",
-   "ruta": "descargas/parcelas_agrocebada.csv",
-   "bytes": 25144,
-   "huella_md5": "34885d2685c37979f814841c9a3dd442",
-   "contiene": "Los mismos datos del mapa, sin los polígonos.",
-   "uso": "Para consultarlos o abrirlos en Excel.",
-   "origen": "Generado a partir del archivo anterior."
-  },
-  {
-   "grupo": "Datos de esta página",
-   "archivo": "modelo.json",
-   "ruta": "data/modelo.json",
-   "bytes": 16640,
-   "huella_md5": "98874d19ba186c8698ca8cac8f827f17",
-   "contiene": "Los parámetros del modelo final ya entrenado: coeficientes, promedios municipales del rendimiento y de la temperatura máxima, y la temperatura máxima de las 59 parcelas a estimar.",
-   "uso": "Con este archivo la página ejecuta el modelo y comprueba que reproduce las 59 predicciones oficiales.",
-   "origen": "Calculado con el ajuste final del cuaderno (mezcla 0.1 y alfa 0.0247)."
   }
  ]
 }
