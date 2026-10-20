@@ -616,13 +616,15 @@ h1{font-family:var(--display);font-weight:650;letter-spacing:-.01em;font-optical
 "use strict";
 /* ===== Configuración que el equipo puede editar ===== */
 const DESCARGAS_ACTIVAS = true;            // true: los botones de descarga bajan su archivo · false: avisan "disponible próximamente"
+const MOSTRAR_APARTADOS = true;            // true: cada tarjeta de Documentos muestra su lista de apartados · false: solo el título y el botón
 const DOCUMENTOS = [                       // tarjetas de la sección Documentos. Cuando subas cada PDF a docs/, escribe su ruta en "archivo",
                                            // por ejemplo "docs/Informe_AgroCebada.pdf". Vacío = el botón avisa "disponible próximamente".
-  {nombre: "Informe", archivo: "", numerada: true, apartados: ["Introducción", "Justificación", "Objetivos", "Metodología", "Resultados y discusión", "Uso de la ciencia de datos en la inclusión financiera del sector agro", "Conclusiones"]},
-  {nombre: "Anexos", archivo: "", numerada: true, apartados: ["Localización y procedimiento", "Desempeño fuera de muestra", "Contexto municipal del SIAP (Servicio de Información Agroalimentaria y Pesquera)", "Predicciones finales: tabla de las 59 parcelas", "Participación de los integrantes"]},
-  {nombre: "Bibliografía", archivo: "", numerada: false, apartados: ["Referencias de las fuentes utilizadas: artículos científicos, documentos técnicos y fuentes de datos", "Relación de prompts de inteligencia artificial, con su propósito y la herramienta empleada"]}
+  {nombre: "Informe", archivo: "docs/Informe_AgroCebada_Vision_Terra_Data.pdf", numerada: true, apartados: ["Introducción", "Justificación", "Objetivos", "Metodología", "Resultados y discusión", "Uso de la ciencia de datos en la inclusión financiera del sector agro", "Conclusiones"]},
+  {nombre: "Anexos", archivo: "docs/Anexos_AgroCebada_Vision_Terra_Data.pdf", numerada: true, apartados: ["Localización y procedimiento", "Desempeño fuera de muestra", "Contexto municipal del SIAP (Servicio de Información Agroalimentaria y Pesquera)", "Predicciones finales: tabla de las 59 parcelas", "Participación de los integrantes"]},
+  {nombre: "Bibliografía", archivo: "docs/Bibliografia_VisionTerraData.pdf", numerada: false, apartados: ["Referencias utilizadas: artículos científicos, documentos técnicos y fuentes de datos"]}
 ];
-const VIDEO = "";                          // enlace de Google Drive al video, por ejemplo "https://drive.google.com/file/d/…/view"; se abre en otra pestaña.
+// Enlace de Google Drive al video (carpeta "Vídeo demostrativo_VisionTerraData"); se abre en otra pestaña.
+const VIDEO = "https://drive.google.com/drive/folders/1pH6nSyzNyGZieTaiPPjtlfHSl6lWLOnD?usp=drive_link";
                                            // Vacío = el botón avisa "disponible próximamente".
 const VIDEO_APARTADOS = ["Funcionamiento del modelo predictivo", "Implementación de la solución tecnológica: esta página", "Duración máxima de 5 minutos"];
 const INTEGRANTES = [];                    // nombres del equipo, por ejemplo ["Nombre Apellido", "Nombre Apellido"]; vacío = no se muestran
@@ -1068,13 +1070,14 @@ function pintarDatos(a) {
 /* ===== Documentos ===== */
 function tarjetaDoc(nombre, apartados, numerada, boton) {
   const t = numerada ? "ol" : "ul";
-  return `<div class="caja doc"><h3>${esc(nombre)}</h3><${t} class="doc-lista">${apartados.map(x => `<li>${esc(x)}</li>`).join("")}</${t}>${boton}</div>`;
+  const lista = MOSTRAR_APARTADOS ? `<${t} class="doc-lista">${apartados.map(x => `<li>${esc(x)}</li>`).join("")}</${t}>` : "";
+  return `<div class="caja doc"><h3>${esc(nombre)}</h3>${lista}${boton}</div>`;
 }
 function pintarDocumentos() {
   const lista = $("docs-lista"); lista.replaceChildren();
   for (const d of DOCUMENTOS) {
     lista.insertAdjacentHTML("beforeend", tarjetaDoc(d.nombre, d.apartados, d.numerada,
-      `<a class="boton borde" href="${esc(d.archivo || "#documentos")}" target="_blank" rel="noopener" data-doc="${esc(d.archivo)}">Abrir el PDF</a>`));
+      `<a class="boton borde" href="${esc(d.archivo || "#documentos")}" download data-doc="${esc(d.archivo)}">Descargar el PDF</a>`));
   }
   lista.insertAdjacentHTML("beforeend", tarjetaDoc("Video", VIDEO_APARTADOS, false,
     `<a class="boton borde" id="b-video" href="${esc(VIDEO || "#documentos")}" target="_blank" rel="noopener">Ver el video en Google Drive</a>`));
